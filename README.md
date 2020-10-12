@@ -1,7 +1,7 @@
 # UZL-Auswertung
 
 ## Projekt-Details
-BDM Projektnummer: 1750 (BDM) <br>
+BDM Projektnummer: 1750 (Biodiversitätsmonitoring Schweiz) <br>
 Konti: A48 <br>
 Budget: 80h <br>
 
