@@ -1,7 +1,7 @@
 # UZL-Auswertung
 
 ## Projekt-Details
-BDM Projektnummer: 1750 (BDM)/
+BDM Projektnummer: 1750 (BDM)<br>
 Konti: A48/
 Budget: 80h
 
