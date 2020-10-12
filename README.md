@@ -2,9 +2,7 @@
 
 ## Projekt-Details
 BDM Projektnummer: 1750 (BDM)
-
 Konti: A48
-
 Budget: 80h
 
 ## Fragestellung
