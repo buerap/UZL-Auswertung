@@ -12,4 +12,4 @@ Wir zeigen die unterschiedliche Entwicklung der UZL Arten zwischen den Artengrup
 
 *12-Oct-2020*: First version of README.txt created.
 
-*12-Oct-2020*: First upload of R script.
+*13-Oct-2020*: First upload of R script.
