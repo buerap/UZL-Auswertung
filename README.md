@@ -12,4 +12,4 @@ Wir zeigen die unterschiedliche Entwicklung der UZL Arten zwischen den Artengrup
 
 *12-Oct-2020*: First version of README.txt created.
 
-*12-Oct-2020*: First working version of package with a first draft of all functions and data files. [Version 0.0.1](https://github.com/buerap/master_thesis/releases/tag/0.0.1).
+*12-Oct-2020*: First upload of R script.
