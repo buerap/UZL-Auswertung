@@ -100,7 +100,7 @@ TF1 <- dat %>%
        y = "Anzahl Arten") +
   theme(legend.position = c(0.85, 0.15))
 
-# Plot Individuenzahl relativ
+# Plot Artenzahl relativ
 TF2 <- dat %>%
   group_by(Aufnahmejahr) %>%
   dplyr::summarise(
@@ -207,23 +207,19 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(BDM_aktuell == "ja") %>%         # dito
   dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
-    tbl(db, "BI") %>%  # Vogelaufnahmen
-      as_tibble() %>% 
-      type_convert() %>% 
-      replace_na(list(Pr1 = 0, Pr2 = 0, Pr3 = 0)) %>%
-      filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
-      left_join(
-        tbl(db, "Arten") %>% 
-          as_tibble()) %>% # Artaufnahmen
-      group_by(aID_KD) %>%            # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+    tbl(db, "BI") %>%                  # Vogelaufnahmen (Pr1,2,3 sind character format`??`)
+      filter(!is.na(aID_SP)) %>%       # unbestimmte Arten rausfiltern
+      left_join(tbl(db, "Arten")) %>%  # Artaufnahmen
+      group_by(aID_KD) %>%             # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
       dplyr::summarise(
-        AZ = n(),                     # Summe der Gesamt-Artenzahl (AZ)
-        AZ_UZL = sum(UZL == 1),       # Summe der UZL-Arten
+        AZ = n(),                      # Summe der Gesamt-Artenzahl (AZ)
+        AZ_UZL = sum(UZL == 1),        # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0))) %>%    # Summe der uebrigen (nicht-UZL) Arten
-      as_tibble()                      # HIER OHNE INDIVIDUEN
+  as_tibble()    %>%                   # HIER OHNE INDIVIDUEN
+  remove_missing() ## UNSCHOEN !!!!! ####
 
-a <- as.data.frame(tbl(db, "BI"))
-a[is.na(a$Ind),]
+summary(dat)
+
 
 
 # Plot Artenzahl
@@ -243,8 +239,8 @@ BI1 <- dat %>%
        y = "Anzahl Arten") +
   theme(legend.position = c(0.85, 0.15))
 
-# Plot Individuenzahl relativ
-TF2 <- dat %>%
+# Plot Artenzahl relativ
+BI2 <- dat %>%
   group_by(Aufnahmejahr) %>%
   dplyr::summarise(
     UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
@@ -254,63 +250,13 @@ TF2 <- dat %>%
   geom_point() +
   geom_line() +
   geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL relativ: Tagfalter (Z7)") +
+  ggtitle("ARTENZAHL relativ: Vögel (Z7)") +
   ylim(0, 2) +
   labs(x = "Aufnahmejahr",
        y = "Arten relativ zum Durchschnitt 2003 - 2019") +
   theme(legend.position = c(0.85, 0.15))
 
-# Plot Individuenzahl
-TF3 <- dat %>% 
-  group_by(Aufnahmejahr) %>%  # gruppiert nach Aufnahmejahr die Mittelwerte aller Flaechen berechnen
-  dplyr::summarise(
-    UZL = mean(IZ_UZL),
-    übrige = mean(IZ_UB)) %>% 
-  gather("Artengruppe", "IZ", -Aufnahmejahr) %>% # umwandeln in long-format
-  ggplot(aes(x = Aufnahmejahr, y = IZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("INDIVIDUENZAHL: Tagfalter (Z7)") +
-  ylim(0, NA) +
-  labs(x = "Aufnahmejahr",
-       y = "Anzahl Individuen") +
-  theme(legend.position = c(0.85, 0.15))
-
-# Plot Individuenzahl relativ
-TF4 <- dat %>%
-  group_by(Aufnahmejahr) %>%
-  dplyr::summarise(
-    UZL = mean(IZ_UZL) / mean(dat$IZ_UZL),
-    übrige = mean(IZ_UB)/ mean(dat$IZ_UB)) %>%
-  gather("Artengruppe", "IZ", -Aufnahmejahr) %>%
-  ggplot(aes(x = Aufnahmejahr, y = IZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("INDIVIDUENZAHL relativ: Tagfalter (Z7)") +
-  ylim(0, 2) +
-  labs(x = "Aufnahmejahr",
-       y = "Individuen relativ zum Durchschnitt 2003 - 2019") +
-  theme(legend.position = c(0.85, 0.15))
-
-# Plot Individuen pro Arten
-TF5 <- dat %>% 
-  group_by(Aufnahmejahr) %>%  # gruppiert nach Aufnahmejahr die Mittelwerte aller Flaechen berechnen
-  dplyr::summarise(
-    UZL = mean(IZperAZ_UZL),
-    übrige = mean(IZperAZ_UB)) %>% 
-  gather("Artengruppe", "IZperAZ", -Aufnahmejahr) %>% # umwandeln in long-format
-  ggplot(aes(x = Aufnahmejahr, y = IZperAZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("Individuen pro Arten: Tagfalter (Z7)") +
-  ylim(0, NA) +
-  labs(x = "Aufnahmejahr",
-       y = "durchschnittliche Anzahl Individuen pro Art") +
-  theme(legend.position = c(0.85, 0.15))
-
+gridExtra::grid.arrange(BI1, BI2, ncol = 2, nrow = 1)
 
 
 
