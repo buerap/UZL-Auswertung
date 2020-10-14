@@ -59,6 +59,7 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
     tbl(db, "TF") %>%  # Tagfalteraufnahmen
+      mutate_at( vars( c("Ind")), funs(if_else(is.na(Ind), 54, Ind))) %>% # Datenbank an einer Stelle falsch -> manuell Wert ersetzen
       filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
       left_join(tbl(db, "Arten")) %>% # Artaufnahmen
       group_by(aID_KD) %>%            # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
@@ -80,8 +81,6 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
    #          IZperAZ_UZL = dat$IZ_UZL/dat$AZ_UZL, # durchschnittliche Individuenzahl pro Art bestimmt
    #          IZperAZ_UB  = dat$IZ_UB/dat$AZ_UB)   # und dies fuer: UZL, Uebrige, gesamt  
       
-
-
 
 # Plot Artenzahl
 TF1 <- dat %>% 
