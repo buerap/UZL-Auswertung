@@ -1,7 +1,7 @@
 rm(list = ls(all = TRUE) )
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Einstellungen ----
+#  Einstellungen ----
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Libraries
 library(tidyverse)
@@ -23,18 +23,6 @@ theme_set(
       legend.position = "top", 
       legend.background = element_rect(colour = "white"))
 )
-
-
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Write function - eher nicht! ----
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-entwicklung <- function(y            = "Arten", 
-                        Kopfdaten    = "KD_Z7",  # KD_Z7 # KD_Z9
-                        Aufnahmeyahr = "yearBu", # yearPl (Pflanzen) # yearBi (Vogel) # yearBu (Tagfalter)  
-){
-  
-}
 
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -191,13 +179,13 @@ gridExtra::grid.arrange(TF1, TF2, TF3, TF4, TF5, ncol = 2, nrow = 3)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
-  filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(!is.na(yearBi)) %>%   # nur Aufnahmejahre miteinbeziehen
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
   left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
   filter(BDM_aktuell == "ja") %>%         # dito
-  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBi) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
     tbl(db, "BI") %>%                  # Vogelaufnahmen (Pr1,2,3 sind character format`??`)
       filter(!is.na(aID_SP)) %>%       # unbestimmte Arten rausfiltern
@@ -257,13 +245,13 @@ gridExtra::grid.arrange(BI1, BI2, ncol = 2, nrow = 1)
 
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
-  filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
   left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
   filter(BDM_aktuell == "ja") %>%         # dito
-  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearPl) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
     tbl(db, "Pl") %>%  # Pflanzenaufnahmen
       filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
@@ -275,8 +263,7 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
         AZ_UZL = sum(UZL == 1),       # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0),        # Summe der uebrigen (nicht-UZL) Arten
   )) %>%
-  as_tibble() %>% 
-  remove_missing() # UNSCHOEN !!! ##
+  as_tibble()
 summary(dat)
 
 
@@ -378,6 +365,32 @@ gridExtra::grid.arrange(Pl1, Pl2, ncol = 2, nrow = 1)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #  Entwicklung Z9-Pflanzen ----
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+# Datentabelle erstellen
+dat <- tbl(db, "KD_Z9") %>%    # Kopfdaten
+  filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
+  filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
+  left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(BDM_aktuell == "ja") %>%         # dito
+  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  left_join(
+    tbl(db, "Pl") %>%  # Pflanzenaufnahmen
+      filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
+      filter(Z7 == 1) %>% 
+      left_join(tbl(db, "Arten")) %>% # Artaufnahmen
+      group_by(aID_KD) %>%            # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+      dplyr::summarise(
+        AZ = n(),                     # Summe der Gesamt-Artenzahl (AZ)
+        AZ_UZL = sum(UZL == 1),       # Summe der UZL-Arten
+        AZ_UB = sum(UZL == 0),        # Summe der uebrigen (nicht-UZL) Arten
+      )) %>%
+  as_tibble() %>% 
+  remove_missing() # UNSCHOEN !!! ##
+summary(dat)
+
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #  Entwicklung Z9-Moose ----
