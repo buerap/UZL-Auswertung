@@ -340,7 +340,7 @@ Pl3 <- dat %>%
 
 
 
-d <- dat %>%
+d <-  dat %>%
   group_by(Aufnahmejahr) %>%
   dplyr::summarise(
     UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
