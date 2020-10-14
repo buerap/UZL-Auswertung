@@ -368,17 +368,16 @@ gridExtra::grid.arrange(Pl1, Pl2, ncol = 2, nrow = 1)
 
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z9") %>%    # Kopfdaten
-  filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
-  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
-  left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
-  filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
-  left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
+  left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
   filter(BDM_aktuell == "ja") %>%         # dito
-  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearPl) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
     tbl(db, "Pl") %>%  # Pflanzenaufnahmen
       filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
-      filter(Z7 == 1) %>% 
+      filter(Z7 == 0) %>% 
       left_join(tbl(db, "Arten")) %>% # Artaufnahmen
       group_by(aID_KD) %>%            # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
       dplyr::summarise(
@@ -389,6 +388,85 @@ dat <- tbl(db, "KD_Z9") %>%    # Kopfdaten
   as_tibble() %>% 
   remove_missing() # UNSCHOEN !!! ##
 summary(dat)
+
+
+# Plot Artenzahl
+Pl.1 <- dat %>% 
+  group_by(Aufnahmejahr) %>%  # gruppiert nach Aufnahmejahr die Mittelwerte aller Flaechen berechnen
+  dplyr::summarise(
+    UZL = mean(AZ_UZL),
+    übrige = mean(AZ_UB)) %>% 
+  gather("Artengruppe", "AZ", -Aufnahmejahr) %>% # umwandeln in long-format
+  ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(method = "lm") +
+  ggtitle("ARTENZAHL: Pflanzen (Z9)") +
+  ylim(0, NA) +
+  labs(x = "Aufnahmejahr",
+       y = "Anzahl Arten") +
+  theme(legend.position = c(0.85, 0.15))
+
+# Plot Artenzahl relativ --> Interaction??
+Pl.2 <- dat %>%
+  group_by(Aufnahmejahr) %>%
+  dplyr::summarise(
+    UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
+    übrige = mean(AZ_UB)/ mean(dat$AZ_UB)) %>%
+  gather("Artengruppe", "AZ", -Aufnahmejahr) %>%
+  ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(method = "lm") +
+  ggtitle("ARTENZAHL relativ: Pflanzen (Z9)") +
+  ylim(0, 2) +
+  labs(x = "Aufnahmejahr",
+       y = "Arten relativ zum Durchschnitt 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15))
+
+# Plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
+Pl.3 <- dat %>%
+  group_by(Aufnahmejahr) %>%
+  dplyr::summarise(
+    UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
+    übrige = mean(AZ_UB)/ mean(dat$AZ_UB)) %>%
+  ggplot(aes(x = übrige, y = UZL)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Vergleich UZL vs. übrige Pflanzenarten (Z9)") +
+  xlim(0.75, 1.2) +
+  ylim(0.75, 1.2) +
+  labs(x = "übrige Arten relativ zum Durchschnitt 2003 - 2019",
+       y = "UZL Arten relativ zum Durchschnitt 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15))
+
+
+library(arm)
+d <- dat %>%
+  mutate(AZrel_UZL = AZ_UZL / mean(AZ_UZL)) %>% 
+  mutate(AZrel_UB  = AZ_UB  / mean(AZ_UB)) %>% 
+  dplyr::select(aID_STAO, Jahr = Aufnahmejahr, AZrel_UZL, AZrel_UB)
+lmer(AZrel_UZL ~ AZrel_UB + (1|aID_STAO), data = d) %>% # random factor is standort
+  summary
+
+# alle flaechen plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
+Pl.4 <- d %>%
+  ggplot(aes(x = AZrel_UB, y = AZrel_UZL)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  geom_smooth(method = "lm", col = "red") +
+  ggtitle("Vergleich UZL vs. übrige Pflanzenarten (Z9)") +
+  xlim(0, 3) +
+  ylim(0, 15) +
+  labs(x = "übrige Arten relativ zum Durchschnitt 2003 - 2019",
+       y = "UZL Arten relativ zum Durchschnitt 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15))
+
+
+# plot on same page
+gridExtra::grid.arrange(Pl.1, Pl.2, ncol = 2, nrow = 1)
+
+
 
 
 
