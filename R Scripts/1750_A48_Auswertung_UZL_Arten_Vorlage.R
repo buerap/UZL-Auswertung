@@ -37,13 +37,6 @@ entwicklung <- function(y            = "Arten",
 }
 
 
-
-
-
-
-
-
-
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #  Entwicklung Z7-Tagfalter ----
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -215,7 +208,7 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
         AZ_UZL = sum(UZL == 1),        # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0))) %>%    # Summe der uebrigen (nicht-UZL) Arten
   as_tibble()    %>%                   # HIER OHNE INDIVIDUEN
-  remove_missing() ## UNSCHOEN !!!!! ####
+  remove_missing() # UNSCHOEN !! ##
 
 summary(dat)
 
@@ -283,7 +276,7 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
         AZ_UB = sum(UZL == 0),        # Summe der uebrigen (nicht-UZL) Arten
   )) %>%
   as_tibble() %>% 
-  remove_missing() ## UNSCHOEN !!!!! ####
+  remove_missing() # UNSCHOEN !!! ##
 summary(dat)
 
 
@@ -394,6 +387,8 @@ gridExtra::grid.arrange(Pl1, Pl2, ncol = 2, nrow = 1)
 #  Entwicklung Z9-Mollusken ----
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+# ----
+# END OF SCRIPT
 
 
 
