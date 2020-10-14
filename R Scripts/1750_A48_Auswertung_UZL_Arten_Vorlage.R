@@ -338,37 +338,26 @@ Pl3 <- dat %>%
   theme(legend.position = c(0.85, 0.15))
 
 
-
-
+library(arm)
 d <- dat %>%
-  group_by(Aufnahmejahr) %>%
-  dplyr::summarise(
-    UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
-    übrige = mean(AZ_UB)/ mean(dat$AZ_UB)) %>% 
-  mutate(Jahr_sd = (Aufnahmejahr-2010) / 10)
-
-0) select nötige spalten
-1) AZ relativ berechnen (für jede fläche)
-2) gather -> long format
-3) mutate Jahr
-4) lmer (somit von allen flächen und nicht nur von jahresdurchschnitten)
-
-
-
-
-d <- dat %>%
-  dplyr::select(aID_STAO, Jahr = Aufnahmejahr, IZ_UZL, IZ_UB) %>%
-  gather("Artengruppe", "Ind", -c(aID_STAO, Jahr)) %>%
-  mutate(Jahr_sd = (Jahr-2010) / 10)
-lmer(Ind ~ Jahr_sd * Artengruppe + (1|aID_STAO), data = d) %>%
+  mutate(AZrel_UZL = AZ_UZL / mean(AZ_UZL)) %>% 
+  mutate(AZrel_UB  = AZ_UB  / mean(AZ_UB)) %>% 
+  dplyr::select(aID_STAO, Jahr = Aufnahmejahr, AZrel_UZL, AZrel_UB)
+lmer(AZrel_UZL ~ AZrel_UB + (1|aID_STAO), data = d) %>% # random factor is standort
   summary
 
-dat %>%
-  group_by(aID_STAO) %>%
-  dplyr::summarise(AZ = mean(AZ), Hoehe = mean(Hoehe)) %>%
-  ggplot(aes(x = Hoehe, y = AZ)) +
+# alle flaechen plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
+Pl4 <- d %>%
+  ggplot(aes(x = AZrel_UB, y = AZrel_UZL)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth(method = "loess") +
+  ggtitle("Vergleich UZL vs. übrige Pflanzenarten (Z7)") +
+  xlim(0, 2.2) +
+  ylim(0, 2.2) +
+  labs(x = "übrige Arten relativ zum Durchschnitt 2003 - 2019",
+       y = "UZL Arten relativ zum Durchschnitt 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15))
+
 
 # plot on same page
 gridExtra::grid.arrange(Pl1, Pl2, ncol = 2, nrow = 1)
