@@ -158,6 +158,7 @@ TF5 <- dat %>%
 
 # plot on same page
 gridExtra::grid.arrange(TF1, TF2, TF3, TF4, TF5, ncol = 2, nrow = 3)
+gridExtra::grid.arrange(TF1, TF2, ncol = 2, nrow = 1)
 
 
 
@@ -471,7 +472,7 @@ dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
 summary(dat)
 
 # Plot Artenzahl
-Pl.1 <- dat %>% 
+Mo.1 <- dat %>% 
   group_by(Aufnahmejahr) %>%  # gruppiert nach Aufnahmejahr die Mittelwerte aller Flaechen berechnen
   dplyr::summarise(
     UZL = mean(AZ_UZL),
@@ -488,7 +489,7 @@ Pl.1 <- dat %>%
   theme(legend.position = c(0.85, 0.15))
 
 # Plot Artenzahl relativ --> Interaction??
-Pl.2 <- dat %>%
+Mo.2 <- dat %>%
   group_by(Aufnahmejahr) %>%
   dplyr::summarise(
     UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
@@ -505,7 +506,7 @@ Pl.2 <- dat %>%
   theme(legend.position = c(0.85, 0.15))
 
 # Plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
-Pl.3 <- dat %>%
+Mo.3 <- dat %>%
   group_by(Aufnahmejahr) %>%
   dplyr::summarise(
     UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
@@ -521,7 +522,7 @@ Pl.3 <- dat %>%
   theme(legend.position = c(0.85, 0.15))
 
 # alle flaechen plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
-Pl.4 <- d %>%
+Mo.4 <- d %>%
   ggplot(aes(x = AZrel_UB, y = AZrel_UZL)) +
   geom_point() +
   geom_smooth(method = "loess") +
@@ -535,7 +536,7 @@ Pl.4 <- d %>%
 
 
 # plot on same page
-gridExtra::grid.arrange(Pl.1, Pl.2, ncol = 2, nrow = 1)
+gridExtra::grid.arrange(Mo.1, Mo.2, ncol = 2, nrow = 1)
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #  Entwicklung Z9-Mollusken ----
@@ -563,7 +564,7 @@ dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
 summary(dat)
 
 # Plot Artenzahl
-Pl.1 <- dat %>% 
+Mol.1 <- dat %>% 
   group_by(Aufnahmejahr) %>%  # gruppiert nach Aufnahmejahr die Mittelwerte aller Flaechen berechnen
   dplyr::summarise(
     UZL = mean(AZ_UZL),
@@ -580,7 +581,7 @@ Pl.1 <- dat %>%
   theme(legend.position = c(0.85, 0.15))
 
 # Plot Artenzahl relativ --> Interaction??
-Pl.2 <- dat %>%
+Mol.2 <- dat %>%
   group_by(Aufnahmejahr) %>%
   dplyr::summarise(
     UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
@@ -597,7 +598,7 @@ Pl.2 <- dat %>%
   theme(legend.position = c(0.85, 0.15))
 
 # Plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
-Pl.3 <- dat %>%
+Mol.3 <- dat %>%
   group_by(Aufnahmejahr) %>%
   dplyr::summarise(
     UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
@@ -613,7 +614,7 @@ Pl.3 <- dat %>%
   theme(legend.position = c(0.85, 0.15))
 
 # alle flaechen plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
-Pl.4 <- d %>%
+Mol.4 <- d %>%
   ggplot(aes(x = AZrel_UB, y = AZrel_UZL)) +
   geom_point() +
   geom_smooth(method = "loess") +
@@ -627,7 +628,7 @@ Pl.4 <- d %>%
 
 
 # plot on same page
-gridExtra::grid.arrange(Pl.1, Pl.2, ncol = 2, nrow = 1)
+gridExtra::grid.arrange(Mol.1, Mol.2, ncol = 2, nrow = 1)
 
 
 
