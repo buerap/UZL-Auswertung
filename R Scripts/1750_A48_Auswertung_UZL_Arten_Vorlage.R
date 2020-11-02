@@ -197,8 +197,8 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
         AZ_UZL = sum(UZL == 1),        # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0))) %>%    # Summe der uebrigen (nicht-UZL) Arten
   as_tibble()    %>%                   # HIER OHNE INDIVIDUEN
-  remove_missing() # UNSCHOEN !! ##
-
+  replace_na(list(AZ     = 0, AZ_UZL      = 0, AZ_UB      = 0,   # in denjenigen Flächen wo keine Aufnahmen
+                  IZ     = 0, IZ_UZL      = 0, IZ_UB      = 0))  # waren gibts beim join ein NA
 summary(dat)
 
 
@@ -262,7 +262,9 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
         AZ_UZL = sum(UZL == 1),       # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0),        # Summe der uebrigen (nicht-UZL) Arten
   )) %>%
-  as_tibble()
+  as_tibble()    %>%                   # HIER OHNE INDIVIDUEN
+  replace_na(list(AZ     = 0, AZ_UZL      = 0, AZ_UB      = 0,   # in denjenigen Flächen wo keine Aufnahmen
+                  IZ     = 0, IZ_UZL      = 0, IZ_UB      = 0))  # waren gibts beim join ein NA
 summary(dat)
 
 
@@ -361,8 +363,9 @@ dat <- tbl(db, "KD_Z9") %>%    # Kopfdaten
         AZ_UZL = sum(UZL == 1),       # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0),        # Summe der uebrigen (nicht-UZL) Arten
       )) %>%
-  as_tibble() %>% 
-  remove_missing() # UNSCHOEN !!! ##
+  as_tibble()    %>%                   # HIER OHNE INDIVIDUEN
+  replace_na(list(AZ     = 0, AZ_UZL      = 0, AZ_UB      = 0,   # in denjenigen Flächen wo keine Aufnahmen
+                  IZ     = 0, IZ_UZL      = 0, IZ_UB      = 0))  # waren gibts beim join ein NA
 summary(dat)
 
 
@@ -453,7 +456,7 @@ dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
   filter(BDM_aktuell == "ja") %>%         # dito
   dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearMoos) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
-    tbl(db, "Moos") %>%  # Pflanzenaufnahmen
+    tbl(db, "Moos") %>%  # Moosaufnahmen
       filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
       left_join(tbl(db, "Arten")) %>% # Artaufnahmen
       group_by(aID_KD) %>%            # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
@@ -462,8 +465,9 @@ dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
         AZ_UZL = sum(UZL == 1),       # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0),        # Summe der uebrigen (nicht-UZL) Arten
       )) %>%
-  as_tibble() %>% 
-  remove_missing() # UNSCHOEN !!! ##
+  as_tibble()    %>%                   # HIER OHNE INDIVIDUEN
+  replace_na(list(AZ     = 0, AZ_UZL      = 0, AZ_UB      = 0,   # in denjenigen Flächen wo keine Aufnahmen
+                  IZ     = 0, IZ_UZL      = 0, IZ_UB      = 0))  # waren gibts beim join ein NA
 summary(dat)
 
 # Plot Artenzahl
@@ -542,9 +546,9 @@ dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
   left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
   left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
   filter(BDM_aktuell == "ja") %>%         # dito
-  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearMoos) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearMol) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
-    tbl(db, "Moos") %>%  # Pflanzenaufnahmen
+    tbl(db, "MOL") %>%  # Molluskenaufnahmen
       filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
       left_join(tbl(db, "Arten")) %>% # Artaufnahmen
       group_by(aID_KD) %>%            # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
@@ -553,9 +557,83 @@ dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
         AZ_UZL = sum(UZL == 1),       # Summe der UZL-Arten
         AZ_UB = sum(UZL == 0),        # Summe der uebrigen (nicht-UZL) Arten
       )) %>%
-  as_tibble() %>% 
-  remove_missing() # UNSCHOEN !!! ##
+  as_tibble()    %>%                   # HIER OHNE INDIVIDUEN
+  replace_na(list(AZ     = 0, AZ_UZL      = 0, AZ_UB      = 0,   # in denjenigen Flächen wo keine Aufnahmen
+                  IZ     = 0, IZ_UZL      = 0, IZ_UB      = 0))  # waren gibts beim join ein NA
 summary(dat)
+
+# Plot Artenzahl
+Pl.1 <- dat %>% 
+  group_by(Aufnahmejahr) %>%  # gruppiert nach Aufnahmejahr die Mittelwerte aller Flaechen berechnen
+  dplyr::summarise(
+    UZL = mean(AZ_UZL),
+    übrige = mean(AZ_UB)) %>% 
+  gather("Artengruppe", "AZ", -Aufnahmejahr) %>% # umwandeln in long-format
+  ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(method = "lm") +
+  ggtitle("ARTENZAHL: Mollusken (Z9)") +
+  ylim(0, NA) +
+  labs(x = "Aufnahmejahr",
+       y = "Anzahl Arten") +
+  theme(legend.position = c(0.85, 0.15))
+
+# Plot Artenzahl relativ --> Interaction??
+Pl.2 <- dat %>%
+  group_by(Aufnahmejahr) %>%
+  dplyr::summarise(
+    UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
+    übrige = mean(AZ_UB)/ mean(dat$AZ_UB)) %>%
+  gather("Artengruppe", "AZ", -Aufnahmejahr) %>%
+  ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
+  geom_point() +
+  geom_line() +
+  geom_smooth(method = "lm") +
+  ggtitle("ARTENZAHL relativ: Mollusken (Z9)") +
+  ylim(0, 3) +
+  labs(x = "Aufnahmejahr",
+       y = "Arten relativ zum Durchschnitt 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15))
+
+# Plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
+Pl.3 <- dat %>%
+  group_by(Aufnahmejahr) %>%
+  dplyr::summarise(
+    UZL = mean(AZ_UZL) / mean(dat$AZ_UZL),
+    übrige = mean(AZ_UB)/ mean(dat$AZ_UB)) %>%
+  ggplot(aes(x = übrige, y = UZL)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Vergleich UZL vs. übrige Molluskenarten (Z9)") +
+  xlim(0.75, 1.2) +
+  ylim(0.75, 1.2) +
+  labs(x = "übrige Arten relativ zum Durchschnitt 2003 - 2019",
+       y = "UZL Arten relativ zum Durchschnitt 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15))
+
+# alle flaechen plot UZl vs. uebrige relativ --> einfluss des beobachters?? oder jahresklima??
+Pl.4 <- d %>%
+  ggplot(aes(x = AZrel_UB, y = AZrel_UZL)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  geom_smooth(method = "lm", col = "red") +
+  ggtitle("Vergleich UZL vs. übrige Molluskenarten (Z9)") +
+  xlim(0, 3) +
+  ylim(0, 15) +
+  labs(x = "übrige Arten relativ zum Durchschnitt 2003 - 2019",
+       y = "UZL Arten relativ zum Durchschnitt 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15))
+
+
+# plot on same page
+gridExtra::grid.arrange(Pl.1, Pl.2, ncol = 2, nrow = 1)
+
+
+
+
+
+
 
 
 # ----
