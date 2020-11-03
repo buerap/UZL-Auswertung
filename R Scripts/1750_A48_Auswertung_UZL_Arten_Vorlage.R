@@ -2,7 +2,7 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Date created:     2020-10-12
 # Location created: Hintermann&Weber, Reinach
-# Last Entry:       2020-10-16
+# Last Entry:       2020-11-02
 # Author:           Raphael S. von Bueren (GitHub: buerap)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Get started (Working directory, packages, ...)----
@@ -33,7 +33,7 @@ theme_set(             # ggplot theme()-default Einstellungen
 db <- src_sqlite(path = "database/DB_BDM_2020_08_20.db", create = FALSE)
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## Entwicklung Z7-Tagfalter ----
+#  Entwicklung Z7-Tagfalter ----
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
@@ -637,8 +637,15 @@ gridExtra::grid.arrange(Mol.1, Mol.2, ncol = 2, nrow = 1)
 
 
 
-# ----
-# END OF SCRIPT
+#  Übersichtsplot----
+gridExtra::grid.arrange(TF1, BI1, Pl1, Pl.1, Mo.1, Mol.1, ncol = 2, nrow = 3)
+gridExtra::grid.arrange(TF2, BI2, Pl2, Pl.2, Mo.2, Mol.2, ncol = 2, nrow = 3)
+
+
+
+# END OF SCRIPT ----
+
+
 
 
 
