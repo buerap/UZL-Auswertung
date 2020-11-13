@@ -11,11 +11,12 @@ Sys.setenv(TZ = "Europe/Zurich")
 graphics.off()                    # Clear Graphic Window
 cat( "\014" )                     # Clear Console ( =  CTRL L)
 
+#install.packages("RSQLite")
 library(tidyverse)
-library(Rmisc)
+#library(Rmisc)
 library(ggthemes)
-library(readxl)
-library(devtools)
+#library(readxl)
+#library(devtools)
 #install_github("TobiasRoth/BDM")
 #library(BDM)
 
@@ -42,7 +43,7 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
   left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
   filter(BDM_aktuell == "ja") %>%         # dito
-  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  dplyr::select(aID_KD, aID_STAO, Hoehe, AntWald, AntLW, Aufnahmejahr = yearBu) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
     tbl(db, "TF") %>%  # Tagfalteraufnahmen
       mutate_at( vars( c("Ind")), funs(if_else(is.na(Ind), 54, Ind))) %>% # Datenbank an einer Stelle falsch -> manuell Wert ersetzen
@@ -68,7 +69,69 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   #add_column(IZperAZ     = dat$IZ/dat$AZ,         # bei jeder Aufnahmeflaeche wird jedes Aufnahmejahr
    #          IZperAZ_UZL = dat$IZ_UZL/dat$AZ_UZL, # durchschnittliche Individuenzahl pro Art bestimmt
    #          IZperAZ_UB  = dat$IZ_UB/dat$AZ_UB)   # und dies fuer: UZL, Uebrige, gesamt  
-      
+
+
+
+
+# Raumdaten miteinbeziehen
+trend <- function(y,x){
+  coef(lm(y ~ x, ))[2]
+}
+
+dat2 <- dat %>% # Artaufnahmen
+      group_by(aID_STAO) %>%
+      dplyr::summarise(
+        Trend_UZL   = trend(AZ_UZL, Aufnahmejahr),
+        Trend_UB    = trend(AZ_UB, Aufnahmejahr),
+        Mean_AZ     = mean(AZ),
+        Mean_AZ_UZL = mean(AZ_UZL),
+        Mean_AZ_UB  = mean(AZ_UB),
+        Landw       = mean(AntLW),
+        Wald        = mean(AntWald),
+        Hoehe       = mean(Hoehe),
+      ) %>%
+  dplyr::rename(UZL = Trend_UZL, UB = Trend_UB) %>% 
+  reshape2::melt(measure.vars = c("UZL", "UB")) %>% 
+  dplyr::rename(Artengruppe = variable, Trend = value) %>% 
+  as_tibble()
+
+
+
+d <- dat2 %>% filter(Artengruppe == "UZL")
+
+d1 <- dat2 %>% filter(Landw > 0.2)
+d2 <- dat2 %>% filter(Wald > 0.2)
+
+
+
+
+ggplot(dat2, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Landwirtschaft : Tagfalter (Z7)")
+
+
+
+
+mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = dat2)
+summary(mod)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Plot Artenzahl
 TF1 <- dat %>% 
@@ -644,9 +707,4 @@ gridExtra::grid.arrange(TF2, BI2, Pl2, Pl.2, Mo.2, Mol.2, ncol = 2, nrow = 3)
 
 
 # END OF SCRIPT ----
-
-
-
-
-
 
