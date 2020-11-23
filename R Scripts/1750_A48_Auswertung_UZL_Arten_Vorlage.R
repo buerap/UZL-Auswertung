@@ -71,8 +71,6 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
    #          IZperAZ_UB  = dat$IZ_UB/dat$AZ_UB)   # und dies fuer: UZL, Uebrige, gesamt  
 
 
-
-
 # Raumdaten miteinbeziehen
 trend <- function(y,x){
   coef(lm(y ~ x, ))[2]
@@ -95,29 +93,19 @@ dat2 <- dat %>% # Artaufnahmen
   dplyr::rename(Artengruppe = variable, Trend = value) %>% 
   as_tibble()
 
-
-
-d <- dat2 %>% filter(Artengruppe == "UZL")
-
-d1 <- dat2 %>% filter(Landw > 0.2)
-d2 <- dat2 %>% filter(Wald > 0.2)
-
-
-
-
 ggplot(dat2, aes(x = Landw, y = Trend, col = Artengruppe)) +
   geom_point() +
   geom_smooth(method = "lm") +
   ggtitle("Entwicklung vs. Landwirtschaft : Tagfalter (Z7)")
 
-
-
-
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = dat2)
 summary(mod)
 
 
-
+# d <- dat2 %>% dplyr::filter(Artengruppe == "UZL")
+# d1 <- dat2 %>% dplyr::filter(Landw >= 0.2)      # hier stürzt R immer ab in RStudio (nur in R klappts)
+# d2 <- dat2 %>% dplyr::filter(Wald >= 0.2)
+# d1 <- dat2[dat2$Landw >= 0.2,]
 
 
 
@@ -250,7 +238,7 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
   left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
   filter(BDM_aktuell == "ja") %>%         # dito
-  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearBi) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  dplyr::select(aID_KD, aID_STAO, Hoehe, AntWald, AntLW, Aufnahmejahr = yearBi) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
     tbl(db, "BI") %>%                  # Vogelaufnahmen (Pr1,2,3 sind character format`??`)
       filter(!is.na(aID_SP)) %>%       # unbestimmte Arten rausfiltern
@@ -265,6 +253,35 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
                   IZ     = 0, IZ_UZL      = 0, IZ_UB      = 0))  # waren gibts beim join ein NA
 summary(dat)
 
+# Raumdaten miteinbeziehen
+trend <- function(y,x){
+  coef(lm(y ~ x, ))[2]
+}
+
+dat2 <- dat %>% # Artaufnahmen
+  group_by(aID_STAO) %>%
+  dplyr::summarise(
+    Trend_UZL   = trend(AZ_UZL, Aufnahmejahr),
+    Trend_UB    = trend(AZ_UB, Aufnahmejahr),
+    Mean_AZ     = mean(AZ),
+    Mean_AZ_UZL = mean(AZ_UZL),
+    Mean_AZ_UB  = mean(AZ_UB),
+    Landw       = mean(AntLW),
+    Wald        = mean(AntWald),
+    Hoehe       = mean(Hoehe),
+  ) %>%
+  dplyr::rename(UZL = Trend_UZL, UB = Trend_UB) %>% 
+  reshape2::melt(measure.vars = c("UZL", "UB")) %>% 
+  dplyr::rename(Artengruppe = variable, Trend = value) %>% 
+  as_tibble()
+
+ggplot(dat2, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Landwirtschaft : Vögel (Z7)")
+
+mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = dat2)
+summary(mod)
 
 
 # Plot Artenzahl
@@ -314,7 +331,7 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
   left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
   filter(BDM_aktuell == "ja") %>%         # dito
-  dplyr::select(aID_KD, aID_STAO, Hoehe, Aufnahmejahr = yearPl) %>% # spalten waehlen die ich brauche als flaecheninformationen
+  dplyr::select(aID_KD, aID_STAO, Hoehe, AntWald, AntLW, Aufnahmejahr = yearPl) %>% # spalten waehlen die ich brauche als flaecheninformationen
   left_join(
     tbl(db, "Pl") %>%  # Pflanzenaufnahmen
       filter(!is.na(aID_SP)) %>% # unbestimmte Arten rausfiltern
@@ -330,6 +347,36 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   replace_na(list(AZ     = 0, AZ_UZL      = 0, AZ_UB      = 0,   # in denjenigen Flächen wo keine Aufnahmen
                   IZ     = 0, IZ_UZL      = 0, IZ_UB      = 0))  # waren gibts beim join ein NA
 summary(dat)
+
+# Raumdaten miteinbeziehen
+trend <- function(y,x){
+  coef(lm(y ~ x, ))[2]
+}
+
+dat2 <- dat %>% # Artaufnahmen
+  group_by(aID_STAO) %>%
+  dplyr::summarise(
+    Trend_UZL   = trend(AZ_UZL, Aufnahmejahr),
+    Trend_UB    = trend(AZ_UB, Aufnahmejahr),
+    Mean_AZ     = mean(AZ),
+    Mean_AZ_UZL = mean(AZ_UZL),
+    Mean_AZ_UB  = mean(AZ_UB),
+    Landw       = mean(AntLW),
+    Wald        = mean(AntWald),
+    Hoehe       = mean(Hoehe),
+  ) %>%
+  dplyr::rename(UZL = Trend_UZL, UB = Trend_UB) %>% 
+  reshape2::melt(measure.vars = c("UZL", "UB")) %>% 
+  dplyr::rename(Artengruppe = variable, Trend = value) %>% 
+  as_tibble()
+
+ggplot(dat2, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Landwirtschaft : Pflanzen (Z7)")
+
+mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = dat2)
+summary(mod)
 
 
 # Plot Artenzahl
