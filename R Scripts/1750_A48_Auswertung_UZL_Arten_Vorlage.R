@@ -34,6 +34,290 @@ theme_set(             # ggplot theme()-default Einstellungen
 db <- src_sqlite(path = "database/DB_BDM_2020_08_20.db", create = FALSE)
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Deskriptiv: Z7-Tagfalter ----
+dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
+  filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
+  filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
+  left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(BDM_aktuell == "ja") %>%         # dito
+  dplyr::select(aID_KD, aID_STAO, Aufnahmejahr = yearBu) %>%   # spalten waehlen die ich brauche als flaecheninformationen
+  left_join(tbl(db, "TF") %>%  # Tagfalteraufnahmen
+    mutate_at( vars( c("Ind")), funs(if_else(is.na(Ind), 54, Ind))) %>% # Datenbank an einer Stelle falsch -> manuell Wert ersetzen
+    filter(!is.na(aID_SP)) %>%  # unbestimmte Arten rausfiltern
+    left_join(tbl(db, "Arten"))) %>% 
+  as_tibble()
+
+# Zeitraum
+dat %>% dplyr::select(Aufnahmejahr) %>% min() 
+dat %>% dplyr::select(Aufnahmejahr) %>% max()  
+
+# Anzahl Standorte
+STAO <- dat %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Anfang = min(Aufnahmejahr),
+                   Ende   = max(Aufnahmejahr))
+nrow(STAO)
+    
+# Gesamtanzahl 
+TF <- dat %>%                                           
+      group_by(aID_SP) %>%                              # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+      filter(!is.na(aID_SP)) %>%     
+      dplyr::summarise(n_plots = n())
+nrow(TF)
+
+# Anteil
+round(nrow(TF)/200,2)
+
+# UZL vs. uebrige vs. nicht verwendet
+UZL <- TF %>%
+       left_join(tbl(db, "Arten") %>% as_tibble(),
+                 by = "aID_SP") %>% 
+       dplyr::select(aID_SP, n_plots, Gattung, Art, ArtD, UZL) %>% 
+       print()
+
+a <- UZL %>% dplyr::filter(UZL == 1) %>% nrow() %>% print()
+b <- UZL %>% dplyr::filter(UZL == 0) %>% nrow() %>% print()
+a+b
+
+
+
+## Deskriptiv: Z7-Voegel ----
+dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
+  filter(!is.na(yearBi)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
+  filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
+  left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(BDM_aktuell == "ja") %>%         # dito
+  dplyr::select(aID_KD, aID_STAO, Aufnahmejahr = yearBi) %>%   # spalten waehlen die ich brauche als flaecheninformationen
+  left_join(tbl(db, "BI") %>%  # Tagfalteraufnahmen
+              filter(!is.na(aID_SP)) %>%  # unbestimmte Arten rausfiltern
+              left_join(tbl(db, "Arten"))) %>% 
+  as_tibble()
+
+# Zeitraum
+dat %>% dplyr::select(Aufnahmejahr) %>% min() 
+dat %>% dplyr::select(Aufnahmejahr) %>% max()  
+
+# Anzahl Standorte
+STAO <- dat %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Anfang = min(Aufnahmejahr),
+                   Ende   = max(Aufnahmejahr))
+nrow(STAO)
+
+# Gesamtanzahl 
+BI <- dat %>%                                           
+  group_by(aID_SP) %>%                              # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+  filter(!is.na(aID_SP)) %>% 
+  dplyr::summarise(n_plots = n())
+nrow(BI)
+
+# Anteil
+round(nrow(BI)/192,2)
+
+# UZL vs. uebrige vs. nicht verwendet
+UZL <- BI %>%
+  left_join(tbl(db, "Arten") %>% as_tibble(),
+            by = "aID_SP") %>% 
+  dplyr::select(aID_SP, n_plots, Gattung, Art, ArtD, UZL) %>% 
+  print()
+
+a <- UZL %>% dplyr::filter(UZL == 1) %>% nrow() %>% print()
+b <- UZL %>% dplyr::filter(UZL == 0) %>% nrow() %>% print()
+a+b
+
+
+## Deskriptiv: Z7-Pflanzen ----
+dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
+  filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
+  filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
+  left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(BDM_aktuell == "ja") %>%         # dito
+  dplyr::select(aID_KD, aID_STAO, Aufnahmejahr = yearPl) %>%   # spalten waehlen die ich brauche als flaecheninformationen
+  left_join(tbl(db, "PL") %>%  # Tagfalteraufnahmen
+              filter(!is.na(aID_SP)) %>%  # unbestimmte Arten rausfiltern
+              left_join(tbl(db, "Arten"))) %>% 
+  as_tibble()
+
+# Zeitraum
+dat %>% dplyr::select(Aufnahmejahr) %>% min() 
+dat %>% dplyr::select(Aufnahmejahr) %>% max()  
+
+# Anzahl Standorte
+STAO <- dat %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Anfang = min(Aufnahmejahr),
+                   Ende   = max(Aufnahmejahr))
+nrow(STAO)
+
+# Gesamtanzahl 
+PL <- dat %>%                                           
+  group_by(aID_SP) %>%                              # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+  filter(!is.na(aID_SP)) %>% 
+  dplyr::summarise(n_plots = n())
+nrow(PL)
+
+# Anteil
+round(nrow(PL)/2712,2)
+
+# UZL vs. uebrige vs. nicht verwendet
+UZL <- PL %>%
+  left_join(tbl(db, "Arten") %>% as_tibble(),
+            by = "aID_SP") %>% 
+  dplyr::select(aID_SP, n_plots, Gattung, Art, ArtD, UZL) %>% 
+  print()
+
+a <- UZL %>% dplyr::filter(UZL == 1) %>% nrow() %>% print()
+b <- UZL %>% dplyr::filter(UZL == 0) %>% nrow() %>% print()
+a+b
+
+## Deskriptiv: Z9-Pflanzen ----
+dat <- tbl(db, "KD_Z9") %>%    # Kopfdaten
+  filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
+  left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(BDM_aktuell == "ja") %>%         # dito
+  dplyr::select(aID_KD, aID_STAO, Aufnahmejahr = yearPl) %>%   # spalten waehlen die ich brauche als flaecheninformationen
+  left_join(tbl(db, "PL") %>%  # Tagfalteraufnahmen
+              filter(!is.na(aID_SP)) %>%  # unbestimmte Arten rausfiltern
+              left_join(tbl(db, "Arten"))) %>% 
+  as_tibble()
+
+
+
+# Zeitraum
+dat %>% dplyr::select(Aufnahmejahr) %>% min() 
+dat %>% dplyr::select(Aufnahmejahr) %>% max()  
+
+# Anzahl Standorte
+STAO <- dat %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Anfang = min(Aufnahmejahr),
+                   Ende   = max(Aufnahmejahr))
+nrow(STAO)
+
+# Gesamtanzahl 
+PL <- dat %>%                                           
+  group_by(aID_SP) %>%                              # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+  filter(!is.na(aID_SP)) %>% 
+  dplyr::summarise(n_plots = n())
+nrow(PL)
+
+# Anteil
+round(nrow(PL)/2712,2)
+
+# UZL vs. uebrige vs. nicht verwendet
+UZL <- PL %>%
+  left_join(tbl(db, "Arten") %>% as_tibble(),
+            by = "aID_SP") %>% 
+  dplyr::select(aID_SP, n_plots, Gattung, Art, ArtD, UZL) %>% 
+  print()
+
+a <- UZL %>% dplyr::filter(UZL == 1) %>% nrow() %>% print()
+b <- UZL %>% dplyr::filter(UZL == 0) %>% nrow() %>% print()
+a+b
+
+
+## Deskriptiv: Z9-Moose ----
+dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
+  filter(!is.na(yearMoos)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
+  left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(BDM_aktuell == "ja") %>%         # dito
+  dplyr::select(aID_KD, aID_STAO, Aufnahmejahr = yearMoos) %>%   # spalten waehlen die ich brauche als flaecheninformationen
+  left_join(tbl(db, "Moos") %>%  # Tagfalteraufnahmen
+              filter(!is.na(aID_SP)) %>%  # unbestimmte Arten rausfiltern
+              left_join(tbl(db, "Arten"))) %>% 
+  as_tibble()
+
+
+# Zeitraum
+dat %>% dplyr::select(Aufnahmejahr) %>% min() 
+dat %>% dplyr::select(Aufnahmejahr) %>% max()  
+
+# Anzahl Standorte
+STAO <- dat %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Anfang = min(Aufnahmejahr),
+                   Ende   = max(Aufnahmejahr))
+nrow(STAO)
+
+# Gesamtanzahl 
+MOS <- dat %>%                                           
+  group_by(aID_SP) %>%                              # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+  filter(!is.na(aID_SP)) %>% 
+  dplyr::summarise(n_plots = n())
+nrow(MOS)
+
+# Anteil
+round(nrow(MOS)/2712,2)
+
+# UZL vs. uebrige vs. nicht verwendet
+UZL <- MOS %>%
+  left_join(tbl(db, "Arten") %>% as_tibble(),
+            by = "aID_SP") %>% 
+  dplyr::select(aID_SP, n_plots, Gattung, Art, ArtD, UZL) %>% 
+  print()
+
+a <- UZL %>% dplyr::filter(UZL == 1) %>% nrow() %>% print()
+b <- UZL %>% dplyr::filter(UZL == 0) %>% nrow() %>% print()
+a+b
+
+
+## Deskriptiv: Z9-Mollusken ----
+dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
+  filter(!is.na(yearMol)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
+  left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
+  left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
+  filter(BDM_aktuell == "ja") %>%         # dito
+  dplyr::select(aID_KD, aID_STAO, Aufnahmejahr = yearMol) %>%   # spalten waehlen die ich brauche als flaecheninformationen
+  left_join(tbl(db, "MOL") %>%  # Tagfalteraufnahmen
+              filter(!is.na(aID_SP)) %>%  # unbestimmte Arten rausfiltern
+              left_join(tbl(db, "Arten"))) %>% 
+  as_tibble()
+
+
+# Zeitraum
+dat %>% dplyr::select(Aufnahmejahr) %>% min() 
+dat %>% dplyr::select(Aufnahmejahr) %>% max()  
+
+# Anzahl Standorte
+STAO <- dat %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Anfang = min(Aufnahmejahr),
+                   Ende   = max(Aufnahmejahr))
+nrow(STAO)
+
+# Gesamtanzahl 
+MOL <- dat %>%                                           
+  group_by(aID_SP) %>%                              # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
+  filter(!is.na(aID_SP)) %>% 
+  dplyr::summarise(n_plots = n())
+nrow(MOL)
+
+# Anteil
+round(nrow(MOL)/2712,2)
+
+# UZL vs. uebrige vs. nicht verwendet
+UZL <- MOL %>%
+  left_join(tbl(db, "Arten") %>% as_tibble(),
+            by = "aID_SP") %>% 
+  dplyr::select(aID_SP, n_plots, Gattung, Art, ArtD, UZL) %>% 
+  print()
+
+a <- UZL %>% dplyr::filter(UZL == 1) %>% nrow() %>% print()
+b <- UZL %>% dplyr::filter(UZL == 0) %>% nrow() %>% print()
+a+b
+
+
 #  Entwicklung Z7-Tagfalter ----
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
