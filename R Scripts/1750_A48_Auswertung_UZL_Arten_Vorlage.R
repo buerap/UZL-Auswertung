@@ -1037,5 +1037,123 @@ gridExtra::grid.arrange(TF2, BI2, Pl2, Pl.2, Mo.2, Mol.2, ncol = 2, nrow = 3)
 
 
 
+#  Trend Artniveau Z7-Tagfalter ---- 
+flaechen <- 375  # Anzahl gültiger Aufnahmeflächen (Übertrag von deskriptiv)
+dat0 <- tbl(db, "KD_Z7") %>%
+  filter(!is.na(yearBu)) %>%  
+  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  
+  left_join(tbl(db, "Raumdaten_Z7")) %>%  
+  filter(Verdichtung_BDM == "nein") %>%   
+  left_join(tbl(db, "STICHPROBE_Z7")) %>% 
+  filter(BDM_aktuell == "ja") %>%         
+  dplyr::select(aID_KD, aID_STAO, Aufnahmejahr = yearBu) %>% 
+  left_join(
+    tbl(db, "TF") %>%  
+      mutate_at( vars( c("Ind")), funs(if_else(is.na(Ind), 54, Ind))) %>% # Datenbank an einer Stelle falsch -> manuell Wert ersetzen
+      filter(!is.na(aID_SP)) %>%                                          
+      left_join(tbl(db, "Arten"))) %>% 
+  group_by(aID_SP, Aufnahmejahr) %>%                            
+  dplyr::summarise(plots = n(), plots_percent = n()/flaechen, Gattung, Art, ArtD, UZL) %>% 
+  filter(!is.na(aID_SP)) %>% 
+  as_tibble() %>% 
+  print()
+
+
+# die Aufnahmejahre die fehlen müssen bei plots eine Null haben !!
+aID_SP <- as.numeric(levels(as.factor(dat$aID_SP)))
+Aufnahmejahr <- rep(2003:2019, length(aID_SP))
+Aufnahmen <- as_tibble(data.frame(aID_SP, Aufnahmejahr)) %>% arrange(aID_SP) %>% print()
+dat <- Aufnahmen %>%
+  left_join(
+    dat0 %>% dplyr::select(aID_SP, Aufnahmejahr, plots, plots_percent),
+    by = c("aID_SP", "Aufnahmejahr"))
+dat$plots <- ifelse(is.na(dat$plots), 0, dat$plots)
+dat$plots_percent <- ifelse(is.na(dat$plots_percent), 0, dat$plots_percent)
+dat <- dat %>% left_join(
+  as_tibble(tbl(db, "Arten")),
+  by = "aID_SP") %>% 
+  dplyr::select(aID_SP, Aufnahmejahr, plots, plots_percent, Gattung, Art, ArtD, UZL)
+
+
+
+# Trend function
+trend <- function(y,x){
+  coef(lm(y ~ x, ))[2]
+}
+trend.p <- function(y,x,d){
+  ifelse(length(x)>2,summary(lm(y ~ x, ))$coefficients[2,4],NA) # bei nur einem oder zwei Jahren mit Funden gibts keinen p-Wert
+}
+
+d <- dat %>% group_by(aID_SP) %>%
+  dplyr::summarise(plots_mean = mean(plots), plots_mean_percent = mean(plots)/flaechen) %>% 
+  print()    # plots_mean: Durchschnittliche Anzahl plots in der eine Art von 2003-2019 vorkommt
+
+dat2 <- dat %>% 
+  left_join(d) %>% 
+  group_by(aID_SP) %>%
+  dplyr::summarise(
+    Trend       = trend(plots, Aufnahmejahr),                    # absoluter Trend (neue Flaechen pro Jahr, in denen Art neu Auftritt)
+    Trend.p     = trend.p(plots, Aufnahmejahr),                  # p-value
+    Trend_prop  = trend((plots/plots_mean), Aufnahmejahr) ,      # relativer Trend (jährlich neue Flaechen relativ zum Durchschnitt 2003-2019 in denen die Art neu auftritt)
+    Trend_prop.p= trend.p((plots/plots_mean), Aufnahmejahr) ,    # p-value
+    plots_mean  = mean(plots_mean),
+    plots_mean_percent = mean(plots_mean_percent),
+    UZL         = mean(UZL)) %>% 
+  left_join(
+    tbl(db, "Arten") %>% 
+      as_tibble() %>% 
+      dplyr::select(aID_SP, Gattung, Art, ArtD),
+    by = "aID_SP") %>% 
+  rename(Artengruppe = UZL) %>% 
+  print()
+dat2$Artengruppe <- as.factor(dat2$Artengruppe)
+levels(dat2$Artengruppe) <- c("UB", "UZL")
+
+ggplot(dat2, aes(x = plots_mean_percent, y = Trend_prop, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Häufigkeit : Tagfalter (Z7) - jeder Punkt eine Art") +
+  xlab("Durchschnittliche Anteil Flaechen in denen Art vorkommt 2003-2019") +
+  ylab("relativer Trend (jährlich neue Flaechen relativ zum Durchschnitt 2003-2019 in denen die Art neu auftritt)")
+
+mod <- lm(Trend_prop ~ Artengruppe*plots_mean, data = dat2)
+summary(mod)
+
+
+
+
+arrange(dat2, desc(Trend_prop))
+
+Zunahme <- dat2 %>%            # mit prop-Daten gibts dasselbe -> muss so sein!
+  filter(Trend.p <= 0.05) %>% 
+  filter(Trend > 0)
+
+Abnahme <- dat2 %>%
+  filter(Trend.p < 0.05) %>% 
+  filter(Trend < 0)
+
+stabil <- dat2 %>%
+  filter(Trend.p > 0.05)
+
+
+nrow(Zunahme)
+table(Zunahme$Artengruppe)
+nrow(Abnahme)
+table(Abnahme$Artengruppe)
+nrow(stabil)
+table(stabil$Artengruppe)
+
+nrow(Zunahme) + nrow(Abnahme) + nrow(stabil) 
+
+boxplot(Trend ~ Artengruppe, data = dat2)
+
+
+
+# d <- data.frame(x=c(1,2,3), y = c(3.5, 2,2))
+# l <- lm(y~x,d)
+# plot(d)
+# abline(l)
+# summary(l)
+
 # END OF SCRIPT ----
 
