@@ -2,7 +2,7 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Date created:     2020-12-10
 # Location created: Tellstrasse 32, Bern
-# Last Entry:       2020-12-10
+# Last Entry:       2020-12-17
 # Author:           Raphael S. von Bueren (GitHub: buerap)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Get started ----
@@ -11,15 +11,10 @@ Sys.setenv(TZ = "Europe/Zurich")
 graphics.off()                    # Clear Graphic Window
 cat( "\014" )                     # Clear Console ( =  CTRL L)
 
-#install.packages("RSQLite")
 library(tidyverse)
 library(ggthemes)
 library(scales)
 library(Rmisc)
-#library(readxl)
-#library(devtools)
-#install_github("TobiasRoth/BDM")
-#library(BDM)
 
 theme_set(             # ggplot theme()-default Einstellungen
   theme_clean() +
@@ -34,7 +29,7 @@ theme_set(             # ggplot theme()-default Einstellungen
 db <- src_sqlite(path = "database/DB_BDM.db", create = FALSE)
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## Vorbereitung Daten (HIER evtl. einige löschen / NICHT als Loop schreiben)----
+## Vorbereitung Daten ----
 # Pflanzen Z7
 PL.Z7 <- tbl(db, "KD_Z7") %>%   
   filter(!is.na(yearPl)) %>%   
@@ -437,14 +432,14 @@ gridExtra::grid.arrange(PL.Z7_relativ,
                         ncol = 2, nrow = 3, as.table = F)
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## Trend vs. Landwirtschaft Z7 (NOCH NICHT FERTIG !!!) (AntLW > 20 % -> bei LW < 10% gibts komplett anderes Bild: UZL werden schlecht geschätzt --> mit Tobi Besprechen)----
-trend.rel <- function(y, x, mean_value){  # glm mit poisson weil zähldaten, aber achtung wenn relativ !! -> wenn hier mit gaussian, dann gibts bei Z9 schönere resultate
+## Trend vs. Landwirtschaft Z7 ----
+trend.rel <- function(y, x, mean_value){
   coef(glm(y ~ x, family = "gaussian"))[2]/(ifelse(mean_value == 0, 1, mean_value))  # wenn keine (z.B. UZL-)Arten vorkommen bei einem Standort bei allen Aufnahmejahren, wird Trend als Null angenommen (0 / 1)
 }
 
 # Pflanzen Z7
 Trend_PL.Z7 <- PL.Z7_Aufnahmen %>%
-  #filter(AntLW > 0.2) %>% 
+  filter(AntLW > 0.1) %>% 
   group_by(aID_STAO) %>%
   dplyr::summarise(Trend_UZL   = trend.rel(y = AZ_UZL, x = Aufnahmejahr, mean_value = mean(AZ_UZL)),
                    Trend_UB    = trend.rel(y = AZ_UB,  x = Aufnahmejahr, mean_value = mean(AZ_UB) ),
@@ -453,34 +448,134 @@ Trend_PL.Z7 <- PL.Z7_Aufnahmen %>%
                    Siedlung    = mean(AntSiedlung),
                    Hoehe       = mean(Hoehe)) %>%
   dplyr::rename(UZL = Trend_UZL, UB = Trend_UB) %>% 
-  reshape2::melt(measure.vars = c("UZL", "UB")) %>% 
+  reshape2::melt(measure.vars = c("UB", "UZL")) %>% 
   dplyr::rename(Artengruppe = variable, Trend = value) %>% 
   as_tibble()
 
-  ggplot(Trend_PL.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
-    #geom_point() +
-    geom_smooth(method = "lm") +
-    ggtitle("Entwicklung vs. Landwirtschaft : Pflanzen (Z7)") +
+ggplot(Trend_PL.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Landwirtschaft : Pflanzen (Z7)") +
   scale_y_continuous(labels = percent)
   
-
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_PL.Z7)
 summary(mod)
-
 mod2 <- lm(Trend ~ Artengruppe*Landw, data = Trend_PL.Z7)
 summary(mod2)
 
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## Trend vs. Landwirtschaft Z9 (NOCH NICHT FERTIG !!!) ----
-# Pflanzen Z7
-Trend_PL.Z9 <- PL.Z9_Aufnahmen %>%
+# Tagfalter Z7
+Trend_TF.Z7 <- TF.Z7_Aufnahmen %>%
+  filter(AntLW > 0.1) %>% 
   group_by(aID_STAO) %>%
   dplyr::summarise(Trend_UZL   = trend.rel(y = AZ_UZL, x = Aufnahmejahr, mean_value = mean(AZ_UZL)),
                    Trend_UB    = trend.rel(y = AZ_UB,  x = Aufnahmejahr, mean_value = mean(AZ_UB) ),
-                   HN          = HN[1],
+                   Landw       = mean(AntLW),
+                   Wald        = mean(AntWald),
+                   Siedlung    = mean(AntSiedlung),
                    Hoehe       = mean(Hoehe)) %>%
   dplyr::rename(UZL = Trend_UZL, UB = Trend_UB) %>% 
-  reshape2::melt(measure.vars = c("UZL", "UB")) %>% 
+  reshape2::melt(measure.vars = c("UB", "UZL")) %>% 
+  dplyr::rename(Artengruppe = variable, Trend = value) %>% 
+  as_tibble()
+
+ggplot(Trend_TF.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Landwirtschaft : Tagfalter (Z7)") +
+  scale_y_continuous(labels = percent)
+
+mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_TF.Z7)
+summary(mod)
+mod2 <- lm(Trend ~ Artengruppe*Landw, data = Trend_TF.Z7)
+summary(mod2)
+
+# Tagfalter Z7
+Trend_BI.Z7 <- BI.Z7_Aufnahmen %>%
+  filter(AntLW > 0.1) %>% 
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Trend_UZL   = trend.rel(y = AZ_UZL, x = Aufnahmejahr, mean_value = mean(AZ_UZL)),
+                   Trend_UB    = trend.rel(y = AZ_UB,  x = Aufnahmejahr, mean_value = mean(AZ_UB) ),
+                   Landw       = mean(AntLW),
+                   Wald        = mean(AntWald),
+                   Siedlung    = mean(AntSiedlung),
+                   Hoehe       = mean(Hoehe)) %>%
+  dplyr::rename(UZL = Trend_UZL, UB = Trend_UB) %>% 
+  reshape2::melt(measure.vars = c("UB", "UZL")) %>% 
+  dplyr::rename(Artengruppe = variable, Trend = value) %>% 
+  as_tibble()
+
+ggplot(Trend_BI.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Landwirtschaft : Vögel (Z7)") +
+  scale_y_continuous(labels = percent)
+
+mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_BI.Z7)
+summary(mod)
+mod2 <- lm(Trend ~ Artengruppe*Landw, data = Trend_BI.Z7)
+summary(mod2)
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Trend vs. Landwirtschaft Z9 ----
+# Mollusken Z9
+Trend_MOL.Z9 <- MOL.Z9_Aufnahmen %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Trend_UB    = trend.rel(y = AZ_UB,  x = Aufnahmejahr, mean_value = mean(AZ_UB) ),
+                   Trend_UZL   = trend.rel(y = AZ_UZL, x = Aufnahmejahr, mean_value = mean(AZ_UZL)),
+                   HN          = HN[1],
+                   Hoehe       = mean(Hoehe)) %>%
+  dplyr::rename( UB = Trend_UB, UZL = Trend_UZL) %>% 
+  reshape2::melt(measure.vars = c("UB", "UZL")) %>% 
+  dplyr::rename(Artengruppe = variable, Trend = value) %>% 
+  as_tibble()
+Trend_MOL.Z9$HN <- as_factor(Trend_MOL.Z9$HN)
+
+ggdata <- Trend_MOL.Z9 %>%
+  group_by(HN, Artengruppe) %>%
+  dplyr::summarise(
+    Trend_mean = mean(Trend),
+    CI = CI(Trend)[1]-CI(Trend)[2])
+ggplot(ggdata, aes(HN, Trend_mean)) +
+  geom_pointrange(
+    aes(ymin = Trend_mean-CI, ymax = Trend_mean+CI, color = Artengruppe),
+    position = position_dodge(0.3)
+  ) +
+  scale_y_continuous(labels = percent)
+
+# Moose Z9
+Trend_MOOS.Z9 <- MOOS.Z9_Aufnahmen %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Trend_UB    = trend.rel(y = AZ_UB,  x = Aufnahmejahr, mean_value = mean(AZ_UB) ),
+                   Trend_UZL   = trend.rel(y = AZ_UZL, x = Aufnahmejahr, mean_value = mean(AZ_UZL)),
+                   HN          = HN[1],
+                   Hoehe       = mean(Hoehe)) %>%
+  dplyr::rename( UB = Trend_UB, UZL = Trend_UZL) %>% 
+  reshape2::melt(measure.vars = c("UB", "UZL")) %>% 
+  dplyr::rename(Artengruppe = variable, Trend = value) %>% 
+  as_tibble()
+Trend_MOOS.Z9$HN <- as_factor(Trend_MOOS.Z9$HN)
+
+ggdata <- Trend_MOOS.Z9 %>%
+  group_by(HN, Artengruppe) %>%
+  dplyr::summarise(
+    Trend_mean = mean(Trend),
+    CI = CI(Trend)[1]-CI(Trend)[2])
+ggplot(ggdata, aes(HN, Trend_mean)) +
+  geom_pointrange(
+    aes(ymin = Trend_mean-CI, ymax = Trend_mean+CI, color = Artengruppe),
+    position = position_dodge(0.3)
+  ) +
+  scale_y_continuous(labels = percent)
+
+# Pflanzen Z9
+Trend_PL.Z9 <- PL.Z9_Aufnahmen %>%
+  group_by(aID_STAO) %>%
+  dplyr::summarise(Trend_UB    = trend.rel(y = AZ_UB,  x = Aufnahmejahr, mean_value = mean(AZ_UB) ),
+                   Trend_UZL   = trend.rel(y = AZ_UZL, x = Aufnahmejahr, mean_value = mean(AZ_UZL)),
+                   HN          = HN[1],
+                   Hoehe       = mean(Hoehe)) %>%
+  dplyr::rename( UB = Trend_UB, UZL = Trend_UZL) %>% 
+  reshape2::melt(measure.vars = c("UB", "UZL")) %>% 
   dplyr::rename(Artengruppe = variable, Trend = value) %>% 
   as_tibble()
 Trend_PL.Z9$HN <- as_factor(Trend_PL.Z9$HN)
@@ -488,12 +583,12 @@ Trend_PL.Z9$HN <- as_factor(Trend_PL.Z9$HN)
 ggdata <- Trend_PL.Z9 %>%
   group_by(HN, Artengruppe) %>%
   dplyr::summarise(
+    Trend_mean = mean(Trend),
     CI = CI(Trend)[1]-CI(Trend)[2],
-    Trend = mean(Trend)
   )
-ggplot(ggdata, aes(HN, Trend)) +
+ggplot(ggdata, aes(HN, Trend_mean)) +
   geom_pointrange(
-    aes(ymin = Trend-CI, ymax = Trend+CI, color = Artengruppe),
+    aes(ymin = Trend_mean-CI, ymax = Trend_mean+CI, color = Artengruppe),
     position = position_dodge(0.3)
   ) +
   scale_y_continuous(labels = percent)
@@ -559,6 +654,7 @@ PL_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
 ggplot(PL_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
   geom_point() +
   geom_smooth(method = "lm") +
+  #geom_smooth(method = "loess") +
   scale_y_continuous(labels = percent)
   
   
@@ -613,6 +709,7 @@ TF_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
 ggplot(TF_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
   geom_point() +
   geom_smooth(method = "lm") +
+  #geom_smooth(method = "loess") +
   scale_y_continuous(labels = percent)
 
 # Vögel Z7  
@@ -666,26 +763,27 @@ BI_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
 ggplot(BI_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
   geom_point() +
   geom_smooth(method = "lm") +
+  #geom_smooth(method = "loess") +
   scale_y_continuous(labels = percent)
 
 # Mollusken Z9
-# MOL.Z9_Occ05_09 <- MOL.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
-#   filter(Z7Z9 == 1) %>%
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1451) 
-# 
-# MOL.Z9_Occ10_14 <- MOL.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
-#   filter(Z7Z9 == 1) %>%
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1451) 
-# 
-# MOL.Z9_Occ15_19 <- MOL.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
-#   filter(Z7Z9 == 1) %>%
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1451) 
+MOL.Z9_Occ05_09 <- MOL.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>%
+  filter(Z7Z9 == 1) %>%
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen05_09 = n() / 1451)
+
+MOL.Z9_Occ10_14 <- MOL.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>%
+  filter(Z7Z9 == 1) %>%
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen10_14 = n() / 1451)
+
+MOL.Z9_Occ15_19 <- MOL.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>%
+  filter(Z7Z9 == 1) %>%
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen15_19 = n() / 1451)
 
 MOL.Z9_Occurence <- tbl(db, "Arten") %>%
   filter(MOL   == 1 & Z7Z9 == 1) %>%
@@ -719,26 +817,27 @@ MOL_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
 ggplot(MOL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
   geom_point() +
   geom_smooth(method = "lm") +
+  #geom_smooth(method = "loess") +
   scale_y_continuous(labels = percent)
 
 # Moose Z9
-# MOOS.Z9_Occ05_09 <- MOOS.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
+# MOOS.Z9_Occ05_09 <- MOOS.Z9_Artaufnahmen %>%
+#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>%
 #   filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
-#   group_by(aID_SP) %>% 
+#   group_by(aID_SP) %>%
 #   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1448)
 # 
-# MOOS.Z9_Occ10_14 <- MOOS.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
+# MOOS.Z9_Occ10_14 <- MOOS.Z9_Artaufnahmen %>%
+#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>%
 #   filter(Z7Z9 == 1) %>% as_tibble %>%
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1448) 
+#   group_by(aID_SP) %>%
+#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1448)
 # 
-# MOOS.Z9_Occ15_19 <- MOOS.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
+# MOOS.Z9_Occ15_19 <- MOOS.Z9_Artaufnahmen %>%
+#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>%
 #   filter(Z7Z9 == 1) %>% as_tibble %>%
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1448) 
+#   group_by(aID_SP) %>%
+#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1448)
 
 MOOS.Z9_Occurence <- tbl(db, "Arten") %>%
   filter(MOOS   == 1 & Z7Z9 == 1) %>% as_tibble %>%
@@ -771,6 +870,7 @@ MOOS_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
 ggplot(MOOS_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
   geom_point() +
   geom_smooth(method = "lm") +
+  #geom_smooth(method = "loess") +
   scale_y_continuous(labels = percent)
 
 # Pflanzen Z9
@@ -823,7 +923,57 @@ PL_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
 ggplot(PL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
   geom_point() +
   geom_smooth(method = "lm") +
+  #geom_smooth(method = "loess") +
   scale_y_continuous(labels = percent)
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Trend deskriptiv ----
+Trend_all <- list(PL.Z7   = PL_Z7.Trend,
+                  TF.Z7   = TF_Z7.Trend,
+                  BI.Z7   = BI_Z7.Trend,
+                  MOL.Z9  = MOL_Z9.Trend,
+                  MOOS.Z9 = MOOS_Z9.Trend,
+                  PL.Z9   = PL_Z9.Trend)
+Trend_Tabelle <- data.frame(row.names = names(Trend_all))
+for (i in 1:6){
+  Trend_Tabelle[i, "Zunahme"] <- Trend_all[[i]] %>%
+    filter(Trend > 0) %>%
+    nrow
+  Trend_Tabelle[i, "Abnahme"] <- Trend_all[[i]] %>%
+    filter(Trend < 0) %>%
+    nrow
+  Trend_Tabelle[i, "stabil"] <- Trend_all[[i]] %>%
+    filter(Trend == 0) %>%
+    nrow
+  Trend_Tabelle[i, "Summe"] <- sum(Trend_Tabelle[i,1:3])
+  Trend_Tabelle[i, "Zunahme_UZL"] <- Trend_all[[i]] %>%
+    filter(Artengruppe == "UZL") %>% 
+    filter(Trend > 0) %>%
+    nrow
+  Trend_Tabelle[i, "Abnahme_UZL"] <- Trend_all[[i]] %>%
+    filter(Artengruppe == "UZL") %>% 
+    filter(Trend < 0) %>%
+    nrow
+  Trend_Tabelle[i, "stabil_UZL"] <- Trend_all[[i]] %>%
+    filter(Artengruppe == "UZL") %>% 
+    filter(Trend == 0) %>%
+    nrow
+  Trend_Tabelle[i, "Zunahme_UB"] <- Trend_all[[i]] %>%
+    filter(Artengruppe == "UB") %>% 
+    filter(Trend > 0) %>%
+    nrow
+  Trend_Tabelle[i, "Abnahme_UB"] <- Trend_all[[i]] %>%
+    filter(Artengruppe == "UB") %>% 
+    filter(Trend < 0) %>%
+    nrow
+  Trend_Tabelle[i, "stabil_UB"] <- Trend_all[[i]] %>%
+    filter(Artengruppe == "UB") %>% 
+    filter(Trend == 0) %>%
+    nrow
+  Trend_Tabelle[i, "Summe_UZL_UB"] <- sum(Trend_Tabelle[i,5:10])
+}
+Trend_Tabelle
+
 
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
