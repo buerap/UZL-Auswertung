@@ -669,23 +669,23 @@ ggplot(BI_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe))
   scale_y_continuous(labels = percent)
 
 # Mollusken Z9
-MOL.Z9_Occ05_09 <- MOL.Z9_Artaufnahmen %>% 
-  filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
-  filter(Z7Z9 == 1) %>%
-  group_by(aID_SP) %>% 
-  dplyr::summarise(Anteil_Flaechen05_09 = n() / 1451) 
-
-MOL.Z9_Occ10_14 <- MOL.Z9_Artaufnahmen %>% 
-  filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
-  filter(Z7Z9 == 1) %>%
-  group_by(aID_SP) %>% 
-  dplyr::summarise(Anteil_Flaechen10_14 = n() / 1451) 
-
-MOL.Z9_Occ15_19 <- MOL.Z9_Artaufnahmen %>% 
-  filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
-  filter(Z7Z9 == 1) %>%
-  group_by(aID_SP) %>% 
-  dplyr::summarise(Anteil_Flaechen15_19 = n() / 1451) 
+# MOL.Z9_Occ05_09 <- MOL.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
+#   filter(Z7Z9 == 1) %>%
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1451) 
+# 
+# MOL.Z9_Occ10_14 <- MOL.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
+#   filter(Z7Z9 == 1) %>%
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1451) 
+# 
+# MOL.Z9_Occ15_19 <- MOL.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
+#   filter(Z7Z9 == 1) %>%
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1451) 
 
 MOL.Z9_Occurence <- tbl(db, "Arten") %>%
   filter(MOL   == 1 & Z7Z9 == 1) %>%
@@ -722,31 +722,30 @@ ggplot(MOL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)
   scale_y_continuous(labels = percent)
 
 # Moose Z9
-MOOS.Z9_Occ05_09 <- MOOS.Z9_Artaufnahmen %>% 
-  filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
-  filter(Z7Z9 == 1) %>%
-  group_by(aID_SP) %>% 
-  dplyr::summarise(Anteil_Flaechen05_09 = n() / 1448) %>% as_tibble
-
-MOOS.Z9_Occ10_14 <- MOOS.Z9_Artaufnahmen %>% 
-  filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
-  filter(Z7Z9 == 1) %>%
-  group_by(aID_SP) %>% 
-  dplyr::summarise(Anteil_Flaechen10_14 = n() / 1448) 
-
-MOOS.Z9_Occ15_19 <- MOOS.Z9_Artaufnahmen %>% 
-  filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
-  filter(Z7Z9 == 1) %>%
-  group_by(aID_SP) %>% 
-  dplyr::summarise(Anteil_Flaechen15_19 = n() / 1448) 
+# MOOS.Z9_Occ05_09 <- MOOS.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
+#   filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1448)
+# 
+# MOOS.Z9_Occ10_14 <- MOOS.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
+#   filter(Z7Z9 == 1) %>% as_tibble %>%
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1448) 
+# 
+# MOOS.Z9_Occ15_19 <- MOOS.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
+#   filter(Z7Z9 == 1) %>% as_tibble %>%
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1448) 
 
 MOOS.Z9_Occurence <- tbl(db, "Arten") %>%
-  filter(MOOS   == 1 & Z7Z9 == 1) %>%
+  filter(MOOS   == 1 & Z7Z9 == 1) %>% as_tibble %>%
   left_join(MOOS.Z9_Occ05_09) %>% 
   left_join(MOOS.Z9_Occ10_14) %>% 
   left_join(MOOS.Z9_Occ15_19) %>%
   dplyr::select(aID_SP, Gattung, Art, ArtD, Z8, UZL, UZL_Zielart, RL, Anteil_Flaechen05_09, Anteil_Flaechen10_14, Anteil_Flaechen15_19) %>% 
-  as_tibble() %>% 
   replace_na(list(Anteil_Flaechen05_09 = 0,
                   Anteil_Flaechen10_14 = 0,
                   Anteil_Flaechen15_19 = 0)) %>% 
@@ -765,7 +764,7 @@ MOOS_Z9.Trend <- MOOS.Z9_Occurence %>%
       dplyr::select(aID_SP, Gattung, Art, ArtD, UZL), by = "aID_SP") %>% 
   dplyr::rename(Artengruppe = UZL) %>% 
   print()
-MOOS_Z9.Trend$Artengruppe <- as.factor(MOOS_Z7.Trend$Artengruppe)
+MOOS_Z9.Trend$Artengruppe <- as.factor(MOOS_Z9.Trend$Artengruppe)
 levels(MOOS_Z9.Trend$Artengruppe) <- c("UB", "UZL")
 MOOS_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
 
@@ -774,7 +773,58 @@ ggplot(MOOS_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe
   geom_smooth(method = "lm") +
   scale_y_continuous(labels = percent)
 
-### nun für andere artengruppen genauso noch machen
+# Pflanzen Z9
+# PL.Z9_Occ05_09 <- PL.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
+#   filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1449) 
+# 
+# PL.Z9_Occ10_14 <- PL.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
+#   filter(Z7Z9 == 1) %>% as_tibble %>% 
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1449) 
+# 
+# PL.Z9_Occ15_19 <- PL.Z9_Artaufnahmen %>% 
+#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
+#   filter(Z7Z9 == 1) %>% as_tibble %>% 
+#   group_by(aID_SP) %>% 
+#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1449) 
+
+PL.Z9_Occurence <- tbl(db, "Arten") %>%
+  filter(PL   == 1 & Z7Z9 == 1) %>% as_tibble %>% 
+  left_join(PL.Z9_Occ05_09) %>% 
+  left_join(PL.Z9_Occ10_14) %>% 
+  left_join(PL.Z9_Occ15_19) %>%
+  dplyr::select(aID_SP, Gattung, Art, ArtD, Z8, UZL, UZL_Zielart, RL, Anteil_Flaechen05_09, Anteil_Flaechen10_14, Anteil_Flaechen15_19) %>% 
+  replace_na(list(Anteil_Flaechen05_09 = 0,
+                  Anteil_Flaechen10_14 = 0,
+                  Anteil_Flaechen15_19 = 0)) %>% 
+  filter(Anteil_Flaechen05_09 != 0 | Anteil_Flaechen10_14 != 0 | Anteil_Flaechen15_19 != 0)
+
+PL_Z9.Trend <- PL.Z9_Occurence %>% 
+  gather("Tranche", "Anteil_Flaechen", -c(aID_SP, Gattung, Art, ArtD, Z8, UZL, UZL_Zielart, RL)) %>% 
+  mutate(Tranchenzahl = ifelse(Tranche == "Anteil_Flaechen05_09", 2007, ifelse(Tranche == "Anteil_Flaechen10_14", 2012, 2017))) %>%
+  group_by(aID_SP) %>% 
+  dplyr::summarise(
+    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen) *2, # mal 2 damit Trend pro 10 Jahre
+    Anteil_Flaechen_mean = mean(Anteil_Flaechen)) %>% 
+  left_join(
+    tbl(db, "Arten") %>% 
+      as_tibble() %>% 
+      dplyr::select(aID_SP, Gattung, Art, ArtD, UZL), by = "aID_SP") %>% 
+  dplyr::rename(Artengruppe = UZL) %>% 
+  print()
+PL_Z9.Trend$Artengruppe <- as.factor(PL_Z9.Trend$Artengruppe)
+levels(PL_Z9.Trend$Artengruppe) <- c("UB", "UZL")
+PL_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
+
+ggplot(PL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_y_continuous(labels = percent)
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## END OF SCRIPT ----
