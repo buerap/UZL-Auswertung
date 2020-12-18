@@ -2,11 +2,11 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Date created:     2020-12-10
 # Location created: Tellstrasse 32, Bern
-# Last Entry:       2020-12-17
+# Last Entry:       2020-12-18
 # Author:           Raphael S. von Bueren (GitHub: buerap)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Get started ----
-rm(list = ls(all = TRUE) )
+#rm(list = ls(all = TRUE) )
 Sys.setenv(TZ = "Europe/Zurich")
 graphics.off()                    # Clear Graphic Window
 cat( "\014" )                     # Clear Console ( =  CTRL L)
@@ -247,15 +247,32 @@ PL.Z7_absolut <- PL.Z7_Aufnahmen %>%
                    übrige = mean(AZ_UB)) %>% 
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL: Pflanzen (Z7)") +
+  geom_point(size = 2, alpha = 0.5) +
+  #geom_line() +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Pflanzen (Z7)") +
   ylim(0, NA) +
   labs(x = "Aufnahmejahr",
        y = "Anzahl Arten") +
-  theme(legend.position = c(0.85, 0.15))
+  scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 15, margin = margin(t = 10, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 15, margin = margin(t = 0, r = 10, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm'))+
+  theme(plot.margin = margin(5,15,5,5))
+
 PL.Z7_absolut
+
+ggsave(PL.Z7_absolut, file = "PL.Z7_absolut.png",
+       path = "R_PLOTS/REPORT",
+       width = 10, height = 10, units = "cm" )
 
 PL.Z7_relativ <- PL.Z7_Aufnahmen %>% 
   group_by(Aufnahmejahr) %>%
@@ -874,23 +891,23 @@ ggplot(MOOS_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe
   scale_y_continuous(labels = percent)
 
 # Pflanzen Z9
-# PL.Z9_Occ05_09 <- PL.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>% 
+# PL.Z9_Occ05_09 <- PL.Z9_Artaufnahmen %>%
+#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>%
 #   filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1449) 
+#   group_by(aID_SP) %>%
+#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1449)
 # 
-# PL.Z9_Occ10_14 <- PL.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>% 
-#   filter(Z7Z9 == 1) %>% as_tibble %>% 
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1449) 
+# PL.Z9_Occ10_14 <- PL.Z9_Artaufnahmen %>%
+#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>%
+#   filter(Z7Z9 == 1) %>% as_tibble %>%
+#   group_by(aID_SP) %>%
+#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1449)
 # 
-# PL.Z9_Occ15_19 <- PL.Z9_Artaufnahmen %>% 
-#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>% 
-#   filter(Z7Z9 == 1) %>% as_tibble %>% 
-#   group_by(aID_SP) %>% 
-#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1449) 
+# PL.Z9_Occ15_19 <- PL.Z9_Artaufnahmen %>%
+#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>%
+#   filter(Z7Z9 == 1) %>% as_tibble %>%
+#   group_by(aID_SP) %>%
+#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1449)
 
 PL.Z9_Occurence <- tbl(db, "Arten") %>%
   filter(PL   == 1 & Z7Z9 == 1) %>% as_tibble %>% 
@@ -958,6 +975,7 @@ for (i in 1:6){
     filter(Artengruppe == "UZL") %>% 
     filter(Trend == 0) %>%
     nrow
+  Trend_Tabelle[i, "Summe_UZL"] <- sum(Trend_Tabelle[i,5:7])
   Trend_Tabelle[i, "Zunahme_UB"] <- Trend_all[[i]] %>%
     filter(Artengruppe == "UB") %>% 
     filter(Trend > 0) %>%
@@ -970,11 +988,10 @@ for (i in 1:6){
     filter(Artengruppe == "UB") %>% 
     filter(Trend == 0) %>%
     nrow
-  Trend_Tabelle[i, "Summe_UZL_UB"] <- sum(Trend_Tabelle[i,5:10])
+  Trend_Tabelle[i, "Summe_UB"] <- sum(Trend_Tabelle[i,9:11])
+  Trend_Tabelle[i, "Summe_UZL_UB"] <- sum(Trend_Tabelle[i,c("Summe_UZL", "Summe_UB")])
 }
 Trend_Tabelle
-
-
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## END OF SCRIPT ----
