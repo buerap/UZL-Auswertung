@@ -248,31 +248,27 @@ PL.Z7_absolut <- PL.Z7_Aufnahmen %>%
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
   geom_point(size = 2, alpha = 0.5) +
-  #geom_line() +
+  geom_line(size = 0.1, show.legend = FALSE) +
   stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
   ggtitle("Pflanzen (Z7)") +
   ylim(0, NA) +
   labs(x = "Aufnahmejahr",
-       y = "Anzahl Arten") +
+       y = "Durchschnittliche Artenzahl \npro Aufnahmefläche") +
   scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
-  theme(legend.position = c(0.85, 0.15)) +
   theme(plot.title = element_text(size = 20, face = "bold")) +
-  theme(axis.title.x   = element_text(size = 15, margin = margin(t = 10, r = 0, b = 0, l = 0)), #face="bold"),
-        axis.title.y   = element_text(size = 15, margin = margin(t = 0, r = 10, b = 0, l = 0)), #face="bold"),
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
         axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
         axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
         axis.ticks.length = unit(5, "pt")) +
   theme(legend.position = c(0.8,0.13),
         legend.direction = "horizontal",
         legend.text = element_text(size = 12, margin = margin(r = 0)),
-        legend.spacing.x = unit(0, 'cm'))+
-  theme(plot.margin = margin(5,15,5,5))
-
+        legend.spacing.x = unit(0, 'cm')) +
+  # theme(legend.position = "none") +
+  theme(plot.margin = margin(5,20,5,5 ),
+        plot.background = element_blank())
 PL.Z7_absolut
-
-ggsave(PL.Z7_absolut, file = "PL.Z7_absolut.png",
-       path = "R_PLOTS/REPORT",
-       width = 10, height = 10, units = "cm" )
 
 PL.Z7_relativ <- PL.Z7_Aufnahmen %>% 
   group_by(Aufnahmejahr) %>%
@@ -280,18 +276,36 @@ PL.Z7_relativ <- PL.Z7_Aufnahmen %>%
                    übrige = (mean(AZ_UB)  / mean(PL.Z7_Aufnahmen$AZ_UB))  - 1) %>% 
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL relativ: Pflanzen (Z7)") +
+  geom_point(size = 2, alpha = 0.5) +
+  geom_line(size = 0.1, show.legend = FALSE) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Pflanzen (Z7)") + # ggtitle("")
   labs(x = "Aufnahmejahr",
-       y = "Veränderte Artenzahl relativ zum Durchschnitt 2003 - 2019") +
-  theme(legend.position = c(0.85, 0.15))+
-  scale_y_continuous(labels=percent)
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.2,0.9),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  #theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(-0.3, 0.3))
 PL.Z7_relativ
 
+PL.Z7_both <- gridExtra::grid.arrange(PL.Z7_absolut, PL.Z7_relativ, ncol = 2)
+# ggsave(PL.Z7_both , file = "PL.Z7_both.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 20, height = 10, units = "cm" )
+
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## relativ andere Artengruppen (alles in einen Plot machen) ----
+## relativ andere Artengruppen (alles in einen Plot machen, auch Pflanzen nochmals) ----
 # Tagfalter Z7
 TF.Z7_Aufnahmen <- TF.Z7 %>% 
   left_join(
@@ -312,14 +326,28 @@ TF.Z7_relativ <- TF.Z7_Aufnahmen %>%
                    übrige = (mean(AZ_UB)  / mean(TF.Z7_Aufnahmen$AZ_UB))  - 1) %>% 
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL relativ: Tagfalter (Z7)") +
+  geom_point(size = 2, alpha = 0.5) +
+  geom_line(size = 0.1, show.legend = FALSE) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Tagfalter (Z7)") +
   labs(x = "Aufnahmejahr",
-       y = "Veränderte Artenzahl relativ zum Durchschnitt 2003 - 2019") +
-  theme(legend.position = c(0.85, 0.15))+
-  scale_y_continuous(labels=percent)
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(-0.3, 0.3))
 TF.Z7_relativ
 
 # Vögel Z7
@@ -341,14 +369,28 @@ BI.Z7_relativ <- BI.Z7_Aufnahmen %>%
                    übrige = (mean(AZ_UB)  / mean(BI.Z7_Aufnahmen$AZ_UB))  - 1) %>% 
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL relativ: Vögel (Z7)") +
+  geom_point(size = 2, alpha = 0.5) +
+  geom_line(size = 0.1, show.legend = FALSE) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Vögel (Z7)") +
   labs(x = "Aufnahmejahr",
-       y = "Veränderte Artenzahl relativ zum Durchschnitt 2003 - 2019") +
-  theme(legend.position = c(0.85, 0.15))+
-  scale_y_continuous(labels=percent)
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(-0.3, 0.3))
 BI.Z7_relativ
 
 # Mollusken Z9
@@ -370,14 +412,28 @@ MOL.Z9_relativ <- MOL.Z9_Aufnahmen %>%
                    übrige = (mean(AZ_UB)  / mean(MOL.Z9_Aufnahmen$AZ_UB))  - 1) %>% 
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL relativ: Mollusken (Z9)") +
+  geom_point(size = 2, alpha = 0.5) +
+  geom_line(size = 0.1, show.legend = FALSE) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Mollusken (Z9)") +
   labs(x = "Aufnahmejahr",
-       y = "Veränderte Artenzahl relativ zum Durchschnitt 2003 - 2019") +
-  theme(legend.position = c(0.85, 0.15))+
-  scale_y_continuous(labels=percent)
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) # HIER KEINE LIMITS
 MOL.Z9_relativ
 
 # Moose Z9
@@ -399,14 +455,28 @@ MOOS.Z9_relativ <- MOOS.Z9_Aufnahmen %>%
                    übrige = (mean(AZ_UB)  / mean(MOOS.Z9_Aufnahmen$AZ_UB))  - 1) %>% 
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL relativ: Moose (Z9)") +
+  geom_point(size = 2, alpha = 0.5) +
+  geom_line(size = 0.1, show.legend = FALSE) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Moose (Z9)") +
   labs(x = "Aufnahmejahr",
-       y = "Veränderte Artenzahl relativ zum Durchschnitt 2003 - 2019") +
-  theme(legend.position = c(0.85, 0.15))+
-  scale_y_continuous(labels=percent)
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(-0.3, 0.3))
 MOOS.Z9_relativ
 
 # Pflanzen Z9
@@ -428,25 +498,43 @@ PL.Z9_relativ <- PL.Z9_Aufnahmen %>%
                    übrige = (mean(AZ_UB)  / mean(PL.Z9_Aufnahmen$AZ_UB))  - 1) %>% 
   gather("Artengruppe", "AZ", -Aufnahmejahr) %>% 
   ggplot(aes(x = Aufnahmejahr, y = AZ, col = Artengruppe)) +
-  geom_point() +
-  geom_line() +
-  geom_smooth(method = "lm") +
-  ggtitle("ARTENZAHL relativ: Pflanzen (Z9)") +
+  geom_point(size = 2, alpha = 0.5) +
+  geom_line(size = 0.1, show.legend = FALSE) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Pflanzen (Z9)") +
   labs(x = "Aufnahmejahr",
-       y = "Veränderte Artenzahl relativ zum Durchschnitt 2003 - 2019") +
-  theme(legend.position = c(0.85, 0.15))+
-  scale_y_continuous(labels=percent)
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(-0.3, 0.3))
 PL.Z9_relativ
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Übersichtsplot alle 6 (Entwicklung relativ) ----
-gridExtra::grid.arrange(PL.Z7_relativ,
-                        TF.Z7_relativ,
-                        BI.Z7_relativ,
-                        MOL.Z9_relativ,
-                        MOOS.Z9_relativ,
-                        PL.Z9_relativ,
-                        ncol = 2, nrow = 3, as.table = F)
+Entwicklung_relativ <- gridExtra::grid.arrange(PL.Z7_relativ,
+                                               TF.Z7_relativ,
+                                               BI.Z7_relativ,
+                                               MOL.Z9_relativ,
+                                               MOOS.Z9_relativ,
+                                               PL.Z9_relativ,
+                                               ncol = 2, nrow = 3, as.table = F)
+
+# ggsave(Entwicklung_relativ , file = "Entwicklung_relativ.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 25, height = 25, units = "cm" )
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Trend vs. Landwirtschaft Z7 ----
