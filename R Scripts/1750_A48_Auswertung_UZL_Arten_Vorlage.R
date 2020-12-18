@@ -31,12 +31,13 @@ theme_set(             # ggplot theme()-default Einstellungen
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ## Connection to data base----
-db <- src_sqlite(path = "database/DB_BDM_2020_08_20.db", create = FALSE)
+db <- src_sqlite(path = "database/DB_BDM.db", create = FALSE)
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Deskriptiv: Z7-Tagfalter ----
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearBu<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
@@ -49,6 +50,8 @@ dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
     left_join(tbl(db, "Arten"))) %>% 
   as_tibble()
 
+
+
 # Zeitraum
 dat %>% dplyr::select(Aufnahmejahr) %>% min() 
 dat %>% dplyr::select(Aufnahmejahr) %>% max()  
@@ -57,18 +60,20 @@ dat %>% dplyr::select(Aufnahmejahr) %>% max()
 STAO <- dat %>%
   group_by(aID_STAO) %>%
   dplyr::summarise(Anfang = min(Aufnahmejahr),
-                   Ende   = max(Aufnahmejahr))
+                   Ende   = max(Aufnahmejahr)) %>% 
+  print()
 nrow(STAO)
     
 # Gesamtanzahl 
 TF <- dat %>%                                           
       group_by(aID_SP) %>%                              # gruppiert nach Stichprobenflaechen die folgenden rechnungen durchfuehren
       filter(!is.na(aID_SP)) %>%     
-      dplyr::summarise(n_plots = n())
+      dplyr::summarise(n_plots = n()) %>% 
+      print()
 nrow(TF)
 
 # Anteil
-round(nrow(TF)/200,2)
+round(nrow(TF)/212,2)
 
 # UZL vs. uebrige vs. nicht verwendet
 UZL <- TF %>%
@@ -86,6 +91,7 @@ a+b
 ## Deskriptiv: Z7-Voegel ----
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(!is.na(yearBi)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearBi<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
@@ -133,6 +139,7 @@ a+b
 ## Deskriptiv: Z7-Pflanzen ----
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearPl<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
@@ -179,6 +186,7 @@ a+b
 ## Deskriptiv: Z9-Pflanzen ----
 dat <- tbl(db, "KD_Z9") %>%    # Kopfdaten
   filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearPl<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
   left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
@@ -227,6 +235,7 @@ a+b
 ## Deskriptiv: Z9-Moose ----
 dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
   filter(!is.na(yearMoos)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearMoos<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
   left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
@@ -274,6 +283,7 @@ a+b
 ## Deskriptiv: Z9-Mollusken ----
 dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
   filter(!is.na(yearMol)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearMol<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
   left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
@@ -318,10 +328,12 @@ b <- UZL %>% dplyr::filter(UZL == 0) %>% nrow() %>% print()
 a+b
 
 
+
 #  Entwicklung Z7-Tagfalter ----
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(!is.na(yearBu)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearBu<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
@@ -517,7 +529,8 @@ gridExtra::grid.arrange(TF1, TF2, ncol = 2, nrow = 1)
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(!is.na(yearBi)) %>%   # nur Aufnahmejahre miteinbeziehen
-  filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
+  filter(yearBi<2020) %>% 
+   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
   left_join(tbl(db, "STICHPROBE_Z7")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
@@ -610,6 +623,7 @@ gridExtra::grid.arrange(BI1, BI2, ncol = 2, nrow = 1)
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z7") %>%    # Kopfdaten
   filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearPl<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z7")) %>%  # Raumdaten (z.B. Hoehe)
   filter(Verdichtung_BDM == "nein") %>%   # verdichtete Regionen Jura und Tessin bereinigen
@@ -742,6 +756,7 @@ gridExtra::grid.arrange(Pl1, Pl2, ncol = 2, nrow = 1)
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z9") %>%    # Kopfdaten
   filter(!is.na(yearPl)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearPl<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
   left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
@@ -845,6 +860,7 @@ gridExtra::grid.arrange(Pl.1, Pl.2, ncol = 2, nrow = 1)
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
   filter(!is.na(yearMoos)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearMoos<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
   left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
@@ -937,6 +953,7 @@ gridExtra::grid.arrange(Mo.1, Mo.2, ncol = 2, nrow = 1)
 # Datentabelle erstellen
 dat <- tbl(db, "KD_Z9") %>%      # Kopfdaten
   filter(!is.na(yearMol)) %>%   # nur Aufnahmejahre miteinbeziehen
+  filter(yearMoos<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z9" | Aufnahmetyp == "Normalaufnahme_Z9") %>%  # Aufnahmetyp
   left_join(tbl(db, "Raumdaten_Z9")) %>%  # Raumdaten (z.B. Hoehe)
   left_join(tbl(db, "STICHPROBE_Z9")) %>% # schwer zugaengliche flaechen gehoeren nicht mehr zur stichprobe
@@ -1041,6 +1058,7 @@ gridExtra::grid.arrange(TF2, BI2, Pl2, Pl.2, Mo.2, Mol.2, ncol = 2, nrow = 3)
 flaechen <- 375  # Anzahl gültiger Aufnahmeflächen (Übertrag von deskriptiv)
 dat0 <- tbl(db, "KD_Z7") %>%
   filter(!is.na(yearBu)) %>%  
+  filter(yearBu<2020) %>% 
   filter(Aufnahmetyp == "BDM_LANAG_Normalaufnahme_Z7" | Aufnahmetyp == "Normalaufnahme_Z7") %>%  
   left_join(tbl(db, "Raumdaten_Z7")) %>%  
   filter(Verdichtung_BDM == "nein") %>%   
@@ -1060,7 +1078,7 @@ dat0 <- tbl(db, "KD_Z7") %>%
 
 
 # die Aufnahmejahre die fehlen müssen bei plots eine Null haben !!
-aID_SP <- as.numeric(levels(as.factor(dat$aID_SP)))
+aID_SP <- as.numeric(levels(as.factor(dat0$aID_SP)))
 Aufnahmejahr <- rep(2003:2019, length(aID_SP))
 Aufnahmen <- as_tibble(data.frame(aID_SP, Aufnahmejahr)) %>% arrange(aID_SP) %>% print()
 dat <- Aufnahmen %>%
@@ -1075,19 +1093,19 @@ dat <- dat %>% left_join(
   dplyr::select(aID_SP, Aufnahmejahr, plots, plots_percent, Gattung, Art, ArtD, UZL)
 
 
-
 # Trend function
 trend <- function(y,x){
   coef(lm(y ~ x, ))[2]
 }
 trend.p <- function(y,x,d){
-  ifelse(length(x)>2,summary(lm(y ~ x, ))$coefficients[2,4],NA) # bei nur einem oder zwei Jahren mit Funden gibts keinen p-Wert
+  ifelse(length(x)>2, summary(lm(y ~ x, ))$coefficients[2,4], NA) # bei nur einem oder zwei Jahren mit Funden gibts keinen p-Wert
 }
 
 d <- dat %>% group_by(aID_SP) %>%
   dplyr::summarise(plots_mean = mean(plots), plots_mean_percent = mean(plots)/flaechen) %>% 
   print()    # plots_mean: Durchschnittliche Anzahl plots in der eine Art von 2003-2019 vorkommt
 
+# Trend der Einzelarten
 dat2 <- dat %>% 
   left_join(d) %>% 
   group_by(aID_SP) %>%
@@ -1109,32 +1127,17 @@ dat2 <- dat %>%
 dat2$Artengruppe <- as.factor(dat2$Artengruppe)
 levels(dat2$Artengruppe) <- c("UB", "UZL")
 
-ggplot(dat2, aes(x = plots_mean_percent, y = Trend_prop, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  ggtitle("Entwicklung vs. Häufigkeit : Tagfalter (Z7) - jeder Punkt eine Art") +
-  xlab("Durchschnittliche Anteil Flaechen in denen Art vorkommt 2003-2019") +
-  ylab("relativer Trend (jährlich neue Flaechen relativ zum Durchschnitt 2003-2019 in denen die Art neu auftritt)")
-
-mod <- lm(Trend_prop ~ Artengruppe*plots_mean, data = dat2)
-summary(mod)
-
-
-
-
+# Zahlen für Tabelle in Report
 arrange(dat2, desc(Trend_prop))
 
 Zunahme <- dat2 %>%            # mit prop-Daten gibts dasselbe -> muss so sein!
   filter(Trend.p <= 0.05) %>% 
   filter(Trend > 0)
-
 Abnahme <- dat2 %>%
   filter(Trend.p < 0.05) %>% 
   filter(Trend < 0)
-
 stabil <- dat2 %>%
-  filter(Trend.p > 0.05)
-
+  filter(Trend.p > 0.05)    # stabil dann, wenn Steigung nicht signifikant -> Nullhypothese (stabil), nicht verwerfen
 
 nrow(Zunahme)
 table(Zunahme$Artengruppe)
@@ -1143,17 +1146,34 @@ table(Abnahme$Artengruppe)
 nrow(stabil)
 table(stabil$Artengruppe)
 
-nrow(Zunahme) + nrow(Abnahme) + nrow(stabil) 
-
-boxplot(Trend ~ Artengruppe, data = dat2)
+nrow(Zunahme) + nrow(Abnahme) + nrow(stabil) # Kontrolle
 
 
+# boxplot(Trend_prop ~ Artengruppe, data = dat2)
+#
+#
+ggplot(dat2, aes(x = plots_mean_percent, y = Trend, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Häufigkeit : Tagfalter (Z7) - jeder Punkt eine Art") +
+  xlab("Durchschnittliche Anteil Flaechen in denen Art vorkommt 2003-2019") +
+  ylab("absoluter Trend (jährlich neue Flaechen in denen die Art auftritt)")
 
-# d <- data.frame(x=c(1,2,3), y = c(3.5, 2,2))
-# l <- lm(y~x,d)
-# plot(d)
-# abline(l)
-# summary(l)
+
+ggplot(dat2, aes(x = plots_mean_percent, y = Trend_prop, col = Artengruppe)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ggtitle("Entwicklung vs. Häufigkeit : Tagfalter (Z7) - jeder Punkt eine Art") +
+  xlab("Durchschnittliche Anteil Flaechen in denen Art vorkommt 2003-2019") +
+  ylab("relativer Trend (jährlich neue Flaechen relativ zum Durchschnitt 2003-2019 in denen die Art neu auftritt)")
+
+# mod <- lm(Trend_prop ~ Artengruppe*plots_mean, data = dat2)
+# summary(mod)
+
+
+
+
+
 
 # END OF SCRIPT ----
 
