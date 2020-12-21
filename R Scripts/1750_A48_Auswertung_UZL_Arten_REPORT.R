@@ -305,7 +305,7 @@ PL.Z7_both <- gridExtra::grid.arrange(PL.Z7_absolut, PL.Z7_relativ, ncol = 2)
 #        width = 20, height = 10, units = "cm" )
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## relativ andere Artengruppen (alles in einen Plot machen, auch Pflanzen nochmals) ----
+## relativ andere Artengruppen ----
 # Tagfalter Z7
 TF.Z7_Aufnahmen <- TF.Z7 %>% 
   left_join(
@@ -331,7 +331,7 @@ TF.Z7_relativ <- TF.Z7_Aufnahmen %>%
   stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
   ggtitle("Tagfalter (Z7)") +
   labs(x = "Aufnahmejahr",
-       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+       y = "Abweichung der Artenzahl vom \nMittelwert 2003 - 2019") +
   scale_x_continuous(limits = c(2001, 2019), breaks = seq(2001,2019,6)) +
   theme(legend.position = c(0.85, 0.15)) +
   theme(plot.title = element_text(size = 20, face = "bold")) +
@@ -557,11 +557,54 @@ Trend_PL.Z7 <- PL.Z7_Aufnahmen %>%
   dplyr::rename(Artengruppe = variable, Trend = value) %>% 
   as_tibble()
 
-ggplot(Trend_PL.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  ggtitle("Entwicklung vs. Landwirtschaft : Pflanzen (Z7)") +
-  scale_y_continuous(labels = percent)
+PL.Z7_Landw <- ggplot(Trend_PL.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Pflanzen (Z7)") +
+  labs(x = "Anteil Landwirtschaft innerhalb der Aufnahmefläche",
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0.1, 0.5, 0.9)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+PL.Z7_plot <- ggplot(Trend_PL.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0.1, 0.5, 0.9)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+PL.Z7_Landw_full <- PL.Z7_Landw +
+  annotation_custom(
+    ggplotGrob(PL.Z7_plot), 
+    xmin = 0.6, xmax = 1, ymin = 0.03, ymax = 0.08
+  )
+PL.Z7_Landw_full
+
+# ggsave(PL.Z7_Landw_full , file = "Entwicklung_Landw_Z7_PL.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 15, height = 15, units = "cm" )
   
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_PL.Z7)
 summary(mod)
@@ -583,18 +626,61 @@ Trend_TF.Z7 <- TF.Z7_Aufnahmen %>%
   dplyr::rename(Artengruppe = variable, Trend = value) %>% 
   as_tibble()
 
-ggplot(Trend_TF.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  ggtitle("Entwicklung vs. Landwirtschaft : Tagfalter (Z7)") +
-  scale_y_continuous(labels = percent)
+TF.Z7_Landw <- ggplot(Trend_TF.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Tagfalter (Z7)") +
+  labs(x = "Anteil Landwirtschaft innerhalb der Aufnahmefläche",
+       y = "Abweichung der Artenzahl vom \nMittelwert 2003 - 2019") +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0.1, 0.5, 0.9)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+TF.Z7_plot <- ggplot(Trend_TF.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0.1, 0.5, 0.9)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+TF.Z7_Landw_full <- TF.Z7_Landw +
+  annotation_custom(
+    ggplotGrob(TF.Z7_plot), 
+    xmin = 0.6, xmax = 1, ymin = 0.15, ymax = 0.32
+  )
+TF.Z7_Landw_full
+
+# ggsave(TF.Z7_Landw_full , file = "Entwicklung_Landw_Z7_TF.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 15, height = 15, units = "cm" )
 
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_TF.Z7)
 summary(mod)
 mod2 <- lm(Trend ~ Artengruppe*Landw, data = Trend_TF.Z7)
 summary(mod2)
 
-# Tagfalter Z7
+# Vögel Z7
 Trend_BI.Z7 <- BI.Z7_Aufnahmen %>%
   filter(AntLW > 0.1) %>% 
   group_by(aID_STAO) %>%
@@ -609,16 +695,62 @@ Trend_BI.Z7 <- BI.Z7_Aufnahmen %>%
   dplyr::rename(Artengruppe = variable, Trend = value) %>% 
   as_tibble()
 
-ggplot(Trend_BI.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  ggtitle("Entwicklung vs. Landwirtschaft : Vögel (Z7)") +
-  scale_y_continuous(labels = percent)
+BI.Z7_Landw <- ggplot(Trend_BI.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Vögel (Z7)") +
+  labs(x = "Anteil Landwirtschaft innerhalb der Aufnahmefläche",
+       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+  theme(legend.position = c(0.85, 0.15)) +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.8,0.13),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0.1, 0.5, 0.9)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(NA, 0.15))
+
+BI.Z7_plot <- ggplot(Trend_BI.Z7, aes(x = Landw, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0.1, 0.5, 0.9)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1))
+
+BI.Z7_Landw_full <- BI.Z7_Landw +
+  annotation_custom(
+    ggplotGrob(BI.Z7_plot), 
+    xmin = 0.6, xmax = 1, ymin = 0.055, ymax = 0.16
+  )
+BI.Z7_Landw_full
+
+# ggsave(BI.Z7_Landw_full , file = "Entwicklung_Landw_Z7_BI.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 15, height = 15, units = "cm" )
 
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_BI.Z7)
 summary(mod)
 mod2 <- lm(Trend ~ Artengruppe*Landw, data = Trend_BI.Z7)
 summary(mod2)
+
+
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Trend vs. Landwirtschaft Z9 ----
