@@ -2,7 +2,7 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Date created:     2020-12-10
 # Location created: Tellstrasse 32, Bern
-# Last Entry:       2020-12-18
+# Last Entry:       2020-12-22
 # Author:           Raphael S. von Bueren (GitHub: buerap)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Get started ----
@@ -552,8 +552,8 @@ Trend_PL.Z7 <- PL.Z7_Aufnahmen %>%
                    Wald        = mean(AntWald),
                    Siedlung    = mean(AntSiedlung),
                    Hoehe       = mean(Hoehe)) %>%
-  dplyr::rename(UZL = Trend_UZL, UB = Trend_UB) %>% 
-  reshape2::melt(measure.vars = c("UB", "UZL")) %>% 
+  dplyr::rename(UZL = Trend_UZL, übrige = Trend_UB) %>% 
+  reshape2::melt(measure.vars = c("übrige", "UZL")) %>% 
   dplyr::rename(Artengruppe = variable, Trend = value) %>% 
   as_tibble()
 
@@ -562,19 +562,18 @@ PL.Z7_Landw <- ggplot(Trend_PL.Z7, aes(x = Landw, y = Trend, col = Artengruppe))
   stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
   ggtitle("Pflanzen (Z7)") +
   labs(x = "Anteil Landwirtschaft innerhalb der Aufnahmefläche",
-       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
-  theme(legend.position = c(0.85, 0.15)) +
+       y = "Entwicklung der Artenzahl pro Jahr") +
   theme(plot.title = element_text(size = 20, face = "bold")) +
   theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
         axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
         axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
         axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
         axis.ticks.length = unit(5, "pt")) +
-  theme(legend.position = c(0.8,0.13),
+  theme(legend.position = c(0.3,0.9),
         legend.direction = "horizontal",
         legend.text = element_text(size = 12, margin = margin(r = 0)),
         legend.spacing.x = unit(0, 'cm')) +
-  theme(legend.position = "none") +
+  #theme(legend.position = "none") +
   theme(plot.margin = margin(5,10,5,5),
         plot.background = element_blank()) +
   scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0.1, 0.5, 0.9)) +
@@ -604,7 +603,7 @@ PL.Z7_Landw_full
 
 # ggsave(PL.Z7_Landw_full , file = "Entwicklung_Landw_Z7_PL.png",
 #        path = "R_PLOTS/REPORT",
-#        width = 15, height = 15, units = "cm" )
+#        width = 12, height = 12, units = "cm" )
   
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_PL.Z7)
 summary(mod)
@@ -631,7 +630,7 @@ TF.Z7_Landw <- ggplot(Trend_TF.Z7, aes(x = Landw, y = Trend, col = Artengruppe))
   stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
   ggtitle("Tagfalter (Z7)") +
   labs(x = "Anteil Landwirtschaft innerhalb der Aufnahmefläche",
-       y = "Abweichung der Artenzahl vom \nMittelwert 2003 - 2019") +
+       y = "Entwicklung der Artenzahl pro Jahr") +
   theme(legend.position = c(0.85, 0.15)) +
   theme(plot.title = element_text(size = 20, face = "bold")) +
   theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
@@ -673,7 +672,7 @@ TF.Z7_Landw_full
 
 # ggsave(TF.Z7_Landw_full , file = "Entwicklung_Landw_Z7_TF.png",
 #        path = "R_PLOTS/REPORT",
-#        width = 15, height = 15, units = "cm" )
+#        width = 12, height = 12, units = "cm" )
 
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_TF.Z7)
 summary(mod)
@@ -700,7 +699,7 @@ BI.Z7_Landw <- ggplot(Trend_BI.Z7, aes(x = Landw, y = Trend, col = Artengruppe))
   stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
   ggtitle("Vögel (Z7)") +
   labs(x = "Anteil Landwirtschaft innerhalb der Aufnahmefläche",
-       y = "Abweichung der Artenzahl vom \nMittelwert 2001 - 2019") +
+       y = "Entwicklung der Artenzahl pro Jahr") +
   theme(legend.position = c(0.85, 0.15)) +
   theme(plot.title = element_text(size = 20, face = "bold")) +
   theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
@@ -742,15 +741,12 @@ BI.Z7_Landw_full
 
 # ggsave(BI.Z7_Landw_full , file = "Entwicklung_Landw_Z7_BI.png",
 #        path = "R_PLOTS/REPORT",
-#        width = 15, height = 15, units = "cm" )
+#        width = 12, height = 12, units = "cm" )
 
 mod <- lm(Trend ~ Artengruppe*Landw + Hoehe + I(Hoehe^2) + Wald, data = Trend_BI.Z7)
 summary(mod)
 mod2 <- lm(Trend ~ Artengruppe*Landw, data = Trend_BI.Z7)
 summary(mod2)
-
-
-
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Trend vs. Landwirtschaft Z9 ----
@@ -772,12 +768,44 @@ ggdata <- Trend_MOL.Z9 %>%
   dplyr::summarise(
     Trend_mean = mean(Trend),
     CI = CI(Trend)[1]-CI(Trend)[2])
-ggplot(ggdata, aes(HN, Trend_mean)) +
+ggdata <- ggdata %>%
+  dplyr::filter(!is.na(Trend_mean))
+ggdata$HN <- ggdata$HN %>% 
+  recode_factor("Aecker" = "AK",
+                "Wiesen, Weiden" = "WW",
+                "Siedlung" = "SI",
+                "Wald" = "WA",
+                "Nicht genutzte Flaechen" = "NG",
+                "Alpweiden" = "AL",
+                "Gletscher, Wasser" = "GW")
+MOL.Z9_HN <- ggplot(ggdata, aes(HN, Trend_mean)) +
   geom_pointrange(
     aes(ymin = Trend_mean-CI, ymax = Trend_mean+CI, color = Artengruppe),
-    position = position_dodge(0.3)
+    position = position_dodge(0.3),
+    size = 1, alpha = 0.5
   ) +
-  scale_y_continuous(labels = percent)
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  ggtitle("Mollusken (Z9)") +
+  labs(x = "Hauptnutzung",
+       y = "Entwicklung der Artenzahl pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 15, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 12, face = "italic", margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  theme(legend.position = c(0.9,1.04),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 8)),
+        legend.spacing.x = unit(0, 'cm'))# +
+  #theme(legend.position = "none")
+MOL.Z9_HN
+
+# ggsave(MOL.Z9_HN , file = "Entwicklung_HN_Z9_MOL.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 # Moose Z9
 Trend_MOOS.Z9 <- MOOS.Z9_Aufnahmen %>%
@@ -797,12 +825,44 @@ ggdata <- Trend_MOOS.Z9 %>%
   dplyr::summarise(
     Trend_mean = mean(Trend),
     CI = CI(Trend)[1]-CI(Trend)[2])
-ggplot(ggdata, aes(HN, Trend_mean)) +
+ggdata <- ggdata %>%
+  dplyr::filter(!is.na(Trend_mean))
+ggdata$HN <- ggdata$HN %>% 
+  recode_factor("Aecker" = "AK",
+                "Wiesen, Weiden" = "WW",
+                "Siedlung" = "SI",
+                "Wald" = "WA",
+                "Nicht genutzte Flaechen" = "NG",
+                "Alpweiden" = "AL",
+                "Gletscher, Wasser" = "GW")
+MOOS.Z9_HN <- ggplot(ggdata, aes(HN, Trend_mean)) +
   geom_pointrange(
     aes(ymin = Trend_mean-CI, ymax = Trend_mean+CI, color = Artengruppe),
-    position = position_dodge(0.3)
+    position = position_dodge(0.3),
+    size = 1, alpha = 0.5
   ) +
-  scale_y_continuous(labels = percent)
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  ggtitle("Moose (Z9)") +
+  labs(x = "Hauptnutzung",
+       y = "Entwicklung der Artenzahl pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 15, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 12, face = "italic", margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  theme(legend.position = c(0.9,1.04),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 8)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none")
+MOOS.Z9_HN
+
+# ggsave(MOOS.Z9_HN , file = "Entwicklung_HN_Z9_MOOS.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 # Pflanzen Z9
 Trend_PL.Z9 <- PL.Z9_Aufnahmen %>%
@@ -823,16 +883,44 @@ ggdata <- Trend_PL.Z9 %>%
     Trend_mean = mean(Trend),
     CI = CI(Trend)[1]-CI(Trend)[2],
   )
-ggplot(ggdata, aes(HN, Trend_mean)) +
+ggdata <- ggdata %>%
+  dplyr::filter(!is.na(Trend_mean))
+ggdata$HN <- ggdata$HN %>% 
+  recode_factor("Aecker" = "AK",
+                "Wiesen, Weiden" = "WW",
+                "Wald" = "WA",
+                "Nicht genutzte Flaechen" = "NG",
+                "Alpweiden" = "AL",
+                "Gletscher, Wasser" = "GW",
+                "Siedlung" = "SI")
+PL.Z9_HN <- ggplot(ggdata, aes(HN, Trend_mean)) +
   geom_pointrange(
     aes(ymin = Trend_mean-CI, ymax = Trend_mean+CI, color = Artengruppe),
-    position = position_dodge(0.3)
+    position = position_dodge(0.3),
+    size = 1, alpha = 0.5
   ) +
-  scale_y_continuous(labels = percent)
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  ggtitle("Pflanzen (Z9)") +
+  labs(x = "Hauptnutzung",
+       y = "Entwicklung der Artenzahl pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 15, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 12, face = "italic", margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  theme(legend.position = c(0.9,1.04),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 8)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none")
+PL.Z9_HN
 
-
-
-
+# ggsave(PL.Z9_HN , file = "Entwicklung_HN_Z9_PL.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Trend vs. Häufigkeit der Art (Z8 Daten) ----
@@ -876,7 +964,7 @@ PL_Z7.Trend <- PL.Z7_Occurence %>%
   mutate(Tranchenzahl = ifelse(Tranche == "Anteil_Flaechen05_09", 2007, ifelse(Tranche == "Anteil_Flaechen10_14", 2012, 2017))) %>%
   group_by(aID_SP) %>% 
   dplyr::summarise(
-    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen) *2, # mal 2 damit Trend pro 10 Jahre
+    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen),
     Anteil_Flaechen_mean = mean(Anteil_Flaechen)) %>% 
   left_join(
     tbl(db, "Arten") %>% 
@@ -885,15 +973,56 @@ PL_Z7.Trend <- PL.Z7_Occurence %>%
  dplyr::rename(Artengruppe = UZL) %>% 
   print()
 PL_Z7.Trend$Artengruppe <- as.factor(PL_Z7.Trend$Artengruppe)
-levels(PL_Z7.Trend$Artengruppe) <- c("UB", "UZL")
-PL_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
+levels(PL_Z7.Trend$Artengruppe) <- c("übrige", "UZL")
+PL_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro Jahr
 
-ggplot(PL_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  #geom_smooth(method = "loess") +
-  scale_y_continuous(labels = percent)
-  
+PL.Z7_Arten <- ggplot(PL_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Pflanzen (Z7)") +
+  labs(x = "Häufigkeit (Anteil besetzter Flächen)",
+       y = "Entwicklung der Häufigkeit pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.83, 1.04 ),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  #theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+PL.Z7_Arten_plot <- ggplot(PL_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.01))
+
+PL.Z7_Arten_full <- PL.Z7_Arten +
+  annotation_custom(
+    ggplotGrob(PL.Z7_Arten_plot), 
+    xmin = 0.5, xmax = 1.05, ymin = 0.004, ymax = 0.012
+  )
+PL.Z7_Arten_full
+
+# ggsave(PL.Z7_Arten_full , file = "Arten_Entwicklung_Häufigkeit_Z7_PL.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
   
 # Tagfalter Z7  
 TF.Z7_Occ05_09 <- TF.Z7_Artaufnahmen %>% 
@@ -931,7 +1060,7 @@ TF_Z7.Trend <- TF.Z7_Occurence %>%
   mutate(Tranchenzahl = ifelse(Tranche == "Anteil_Flaechen05_09", 2007, ifelse(Tranche == "Anteil_Flaechen10_14", 2012, 2017))) %>%
   group_by(aID_SP) %>% 
   dplyr::summarise(
-    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen) *2, # mal 2 damit Trend pro 10 Jahre
+    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen),
     Anteil_Flaechen_mean = mean(Anteil_Flaechen)) %>% 
   left_join(
     tbl(db, "Arten") %>% 
@@ -940,14 +1069,56 @@ TF_Z7.Trend <- TF.Z7_Occurence %>%
   dplyr::rename(Artengruppe = UZL) %>% 
   print()
 TF_Z7.Trend$Artengruppe <- as.factor(TF_Z7.Trend$Artengruppe)
-levels(TF_Z7.Trend$Artengruppe) <- c("UB", "UZL")
-TF_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
+levels(TF_Z7.Trend$Artengruppe) <- c("übrige", "UZL")
+TF_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro Jahr
 
-ggplot(TF_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  #geom_smooth(method = "loess") +
-  scale_y_continuous(labels = percent)
+TF.Z7_Arten <- ggplot(TF_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Tagfalter (Z7)") +
+  labs(x = "Häufigkeit (Anteil besetzter Flächen)",
+       y = "Entwicklung der Häufigkeit pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.83, 1.04 ),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1), limits = c(0,1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+TF.Z7_Arten_plot <- ggplot(TF_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1), limits = c(0,1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+TF.Z7_Arten_full <- TF.Z7_Arten +
+  annotation_custom(
+    ggplotGrob(TF.Z7_Arten_plot), 
+    xmin = 0.5, xmax = 1.05, ymin = 0.015, ymax = 0.0265
+  )
+TF.Z7_Arten_full
+
+# ggsave(TF.Z7_Arten_full , file = "Arten_Entwicklung_Häufigkeit_Z7_TF.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 # Vögel Z7  
 BI.Z7_Occ05_09 <- BI.Z7_Artaufnahmen %>% 
@@ -985,7 +1156,7 @@ BI_Z7.Trend <- BI.Z7_Occurence %>%
   mutate(Tranchenzahl = ifelse(Tranche == "Anteil_Flaechen05_09", 2007, ifelse(Tranche == "Anteil_Flaechen10_14", 2012, 2017))) %>%
   group_by(aID_SP) %>% 
   dplyr::summarise(
-    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen) *2, # mal 2 damit Trend pro 10 Jahre
+    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen),
     Anteil_Flaechen_mean = mean(Anteil_Flaechen)) %>% 
   left_join(
     tbl(db, "Arten") %>% 
@@ -994,14 +1165,56 @@ BI_Z7.Trend <- BI.Z7_Occurence %>%
   dplyr::rename(Artengruppe = UZL) %>% 
   print()
 BI_Z7.Trend$Artengruppe <- as.factor(BI_Z7.Trend$Artengruppe)
-levels(BI_Z7.Trend$Artengruppe) <- c("UB", "UZL")
-BI_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
+levels(BI_Z7.Trend$Artengruppe) <- c("übrige", "UZL")
+BI_Z7.Trend  # Trend = Anteil mehr Flächen (%) pro Jahr
 
-ggplot(BI_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  #geom_smooth(method = "loess") +
-  scale_y_continuous(labels = percent)
+BI.Z7_Arten <- ggplot(BI_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Vögel (Z7)") +
+  labs(x = "Häufigkeit (Anteil besetzter Flächen)",
+       y = "Entwicklung der Häufigkeit pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.83, 1.04 ),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1), limits = c(0,1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+BI.Z7_Arten_plot <- ggplot(BI_Z7.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1), limits = c(0,1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.01))
+
+BI.Z7_Arten_full <- BI.Z7_Arten +
+  annotation_custom(
+    ggplotGrob(BI.Z7_Arten_plot), 
+    xmin = 0.5, xmax = 1.05, ymin = 0.006, ymax = 0.014
+  )
+BI.Z7_Arten_full
+
+# ggsave(BI.Z7_Arten_full , file = "Arten_Entwicklung_Häufigkeit_Z7_BI.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 # Mollusken Z9
 MOL.Z9_Occ05_09 <- MOL.Z9_Artaufnahmen %>%
@@ -1039,7 +1252,7 @@ MOL_Z9.Trend <- MOL.Z9_Occurence %>%
   mutate(Tranchenzahl = ifelse(Tranche == "Anteil_Flaechen05_09", 2007, ifelse(Tranche == "Anteil_Flaechen10_14", 2012, 2017))) %>%
   group_by(aID_SP) %>% 
   dplyr::summarise(
-    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen) *2, # mal 2 damit Trend pro 10 Jahre
+    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen),
     Anteil_Flaechen_mean = mean(Anteil_Flaechen)) %>% 
   left_join(
     tbl(db, "Arten") %>% 
@@ -1048,33 +1261,75 @@ MOL_Z9.Trend <- MOL.Z9_Occurence %>%
   dplyr::rename(Artengruppe = UZL) %>% 
   print()
 MOL_Z9.Trend$Artengruppe <- as.factor(MOL_Z9.Trend$Artengruppe)
-levels(MOL_Z9.Trend$Artengruppe) <- c("UB", "UZL")
-MOL_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
+levels(MOL_Z9.Trend$Artengruppe) <- c("übrige", "UZL")
+MOL_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro Jahr
 
-ggplot(MOL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  #geom_smooth(method = "loess") +
-  scale_y_continuous(labels = percent)
+MOL.Z9_Arten <- ggplot(MOL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Mollusken (Z9)") +
+  labs(x = "Häufigkeit (Anteil besetzter Flächen)",
+       y = "Entwicklung der Häufigkeit pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.83, 1.04 ),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1), limits = c(0,1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+MOL.Z9_Arten_plot <- ggplot(MOL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.2, 0.4)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+MOL.Z9_Arten_full <- MOL.Z9_Arten +
+  annotation_custom(
+    ggplotGrob(MOL.Z9_Arten_plot), 
+    xmin = 0.5, xmax = 1.05, ymin = 0.003, ymax = 0.0085
+  )
+MOL.Z9_Arten_full
+
+# ggsave(MOL.Z9_Arten_full , file = "Arten_Entwicklung_Häufigkeit_Z9_MOL.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 # Moose Z9
-# MOOS.Z9_Occ05_09 <- MOOS.Z9_Artaufnahmen %>%
-#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>%
-#   filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
-#   group_by(aID_SP) %>%
-#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1448)
-# 
-# MOOS.Z9_Occ10_14 <- MOOS.Z9_Artaufnahmen %>%
-#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>%
-#   filter(Z7Z9 == 1) %>% as_tibble %>%
-#   group_by(aID_SP) %>%
-#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1448)
-# 
-# MOOS.Z9_Occ15_19 <- MOOS.Z9_Artaufnahmen %>%
-#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>%
-#   filter(Z7Z9 == 1) %>% as_tibble %>%
-#   group_by(aID_SP) %>%
-#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1448)
+MOOS.Z9_Occ05_09 <- MOOS.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>%
+  filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen05_09 = n() / 1448)
+
+MOOS.Z9_Occ10_14 <- MOOS.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>%
+  filter(Z7Z9 == 1) %>% as_tibble %>%
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen10_14 = n() / 1448)
+
+MOOS.Z9_Occ15_19 <- MOOS.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>%
+  filter(Z7Z9 == 1) %>% as_tibble %>%
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen15_19 = n() / 1448)
 
 MOOS.Z9_Occurence <- tbl(db, "Arten") %>%
   filter(MOOS   == 1 & Z7Z9 == 1) %>% as_tibble %>%
@@ -1092,7 +1347,7 @@ MOOS_Z9.Trend <- MOOS.Z9_Occurence %>%
   mutate(Tranchenzahl = ifelse(Tranche == "Anteil_Flaechen05_09", 2007, ifelse(Tranche == "Anteil_Flaechen10_14", 2012, 2017))) %>%
   group_by(aID_SP) %>% 
   dplyr::summarise(
-    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen) *2, # mal 2 damit Trend pro 10 Jahre
+    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen),
     Anteil_Flaechen_mean = mean(Anteil_Flaechen)) %>% 
   left_join(
     tbl(db, "Arten") %>% 
@@ -1101,33 +1356,75 @@ MOOS_Z9.Trend <- MOOS.Z9_Occurence %>%
   dplyr::rename(Artengruppe = UZL) %>% 
   print()
 MOOS_Z9.Trend$Artengruppe <- as.factor(MOOS_Z9.Trend$Artengruppe)
-levels(MOOS_Z9.Trend$Artengruppe) <- c("UB", "UZL")
-MOOS_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
+levels(MOOS_Z9.Trend$Artengruppe) <- c("übrige", "UZL")
+MOOS_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro Jahr
 
-ggplot(MOOS_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  #geom_smooth(method = "loess") +
-  scale_y_continuous(labels = percent)
+MOOS.Z9_Arten <- ggplot(MOOS_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Moose (Z9)") +
+  labs(x = "Häufigkeit (Anteil besetzter Flächen)",
+       y = "Entwicklung der Häufigkeit pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.83, 1.04 ),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1), limits = c(0,1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+MOOS.Z9_Arten_plot <- ggplot(MOOS_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.15, 0.3)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.01))
+
+MOOS.Z9_Arten_full <- MOOS.Z9_Arten +
+  annotation_custom(
+    ggplotGrob(MOOS.Z9_Arten_plot), 
+    xmin = 0.5, xmax = 1.05, ymin = 0.0011, ymax = 0.0038
+  )
+MOOS.Z9_Arten_full
+
+# ggsave(MOOS.Z9_Arten_full , file = "Arten_Entwicklung_Häufigkeit_Z9_MOOS.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 # Pflanzen Z9
-# PL.Z9_Occ05_09 <- PL.Z9_Artaufnahmen %>%
-#   filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>%
-#   filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
-#   group_by(aID_SP) %>%
-#   dplyr::summarise(Anteil_Flaechen05_09 = n() / 1449)
-# 
-# PL.Z9_Occ10_14 <- PL.Z9_Artaufnahmen %>%
-#   filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>%
-#   filter(Z7Z9 == 1) %>% as_tibble %>%
-#   group_by(aID_SP) %>%
-#   dplyr::summarise(Anteil_Flaechen10_14 = n() / 1449)
-# 
-# PL.Z9_Occ15_19 <- PL.Z9_Artaufnahmen %>%
-#   filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>%
-#   filter(Z7Z9 == 1) %>% as_tibble %>%
-#   group_by(aID_SP) %>%
-#   dplyr::summarise(Anteil_Flaechen15_19 = n() / 1449)
+PL.Z9_Occ05_09 <- PL.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2010 & Aufnahmejahr > 2004) %>%
+  filter(Z7Z9 == 1) %>% as_tibble %>%  # hier schon tibble weil sonst gehts hier zu lange
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen05_09 = n() / 1449)
+
+PL.Z9_Occ10_14 <- PL.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2015 & Aufnahmejahr > 2009) %>%
+  filter(Z7Z9 == 1) %>% as_tibble %>%
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen10_14 = n() / 1449)
+
+PL.Z9_Occ15_19 <- PL.Z9_Artaufnahmen %>%
+  filter(Aufnahmejahr < 2020 & Aufnahmejahr > 2014) %>%
+  filter(Z7Z9 == 1) %>% as_tibble %>%
+  group_by(aID_SP) %>%
+  dplyr::summarise(Anteil_Flaechen15_19 = n() / 1449)
 
 PL.Z9_Occurence <- tbl(db, "Arten") %>%
   filter(PL   == 1 & Z7Z9 == 1) %>% as_tibble %>% 
@@ -1145,7 +1442,7 @@ PL_Z9.Trend <- PL.Z9_Occurence %>%
   mutate(Tranchenzahl = ifelse(Tranche == "Anteil_Flaechen05_09", 2007, ifelse(Tranche == "Anteil_Flaechen10_14", 2012, 2017))) %>%
   group_by(aID_SP) %>% 
   dplyr::summarise(
-    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen) *2, # mal 2 damit Trend pro 10 Jahre
+    Trend = trend.Occ(x = Tranchenzahl, y = Anteil_Flaechen),
     Anteil_Flaechen_mean = mean(Anteil_Flaechen)) %>% 
   left_join(
     tbl(db, "Arten") %>% 
@@ -1154,14 +1451,56 @@ PL_Z9.Trend <- PL.Z9_Occurence %>%
   dplyr::rename(Artengruppe = UZL) %>% 
   print()
 PL_Z9.Trend$Artengruppe <- as.factor(PL_Z9.Trend$Artengruppe)
-levels(PL_Z9.Trend$Artengruppe) <- c("UB", "UZL")
-PL_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro 10 Jahre
+levels(PL_Z9.Trend$Artengruppe) <- c("übrige", "UZL")
+PL_Z9.Trend  # Trend = Anteil mehr Flächen (%) pro Jahr
 
-ggplot(PL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  #geom_smooth(method = "loess") +
-  scale_y_continuous(labels = percent)
+PL.Z9_Arten <- ggplot(PL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  geom_point(size = 2, alpha = 0.5) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  ggtitle("Pflanzen (Z9)") +
+  labs(x = "Häufigkeit (Anteil besetzter Flächen)",
+       y = "Entwicklung der Häufigkeit pro Jahr") +
+  theme(plot.title = element_text(size = 20, face = "bold")) +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 5, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 5, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 15, margin = margin(t = 5, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 15, margin = margin(t = 0, r = 5, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = c(0.83, 1.04 ),
+        legend.direction = "horizontal",
+        legend.text = element_text(size = 12, margin = margin(r = 0)),
+        legend.spacing.x = unit(0, 'cm')) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_blank()) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.5, 1), limits = c(0,1)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.1))
+
+PL.Z9_Arten_plot <- ggplot(PL_Z9.Trend, aes(x = Anteil_Flaechen_mean, y = Trend, col = Artengruppe)) +
+  stat_smooth(method = "lm", size = 0.5, alpha = 0.5, show.legend = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme(axis.title.x   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.title.y   = element_text(size = 12, margin = margin(t = 0, r = 0, b = 0, l = 0)), #face="bold"),
+        axis.text.x    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.text.y    = element_text(size = 10, margin = margin(t = 0, r = 0, b = 0, l = 0)),
+        axis.ticks.length = unit(5, "pt")) +
+  theme(legend.position = "none") +
+  theme(plot.margin = margin(5,10,5,5),
+        plot.background = element_rect(fill = "white", colour = "white")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), breaks = c(0, 0.15, 0.3)) +
+  scale_y_continuous(labels = percent_format(accuracy = 0.01))
+
+PL.Z9_Arten_full <- PL.Z9_Arten +
+  annotation_custom(
+    ggplotGrob(PL.Z9_Arten_plot), 
+    xmin = 0.5, xmax = 1.05, ymin = 0.0011, ymax = 0.0038
+  )
+PL.Z9_Arten_full
+
+# ggsave(PL.Z9_Arten_full , file = "Arten_Entwicklung_Häufigkeit_Z9_PL.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 12, height = 12, units = "cm" )
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Trend deskriptiv ----
@@ -1197,15 +1536,15 @@ for (i in 1:6){
     nrow
   Trend_Tabelle[i, "Summe_UZL"] <- sum(Trend_Tabelle[i,5:7])
   Trend_Tabelle[i, "Zunahme_UB"] <- Trend_all[[i]] %>%
-    filter(Artengruppe == "UB") %>% 
+    filter(Artengruppe == "übrige") %>% 
     filter(Trend > 0) %>%
     nrow
   Trend_Tabelle[i, "Abnahme_UB"] <- Trend_all[[i]] %>%
-    filter(Artengruppe == "UB") %>% 
+    filter(Artengruppe == "übrige") %>% 
     filter(Trend < 0) %>%
     nrow
   Trend_Tabelle[i, "stabil_UB"] <- Trend_all[[i]] %>%
-    filter(Artengruppe == "UB") %>% 
+    filter(Artengruppe == "übrige") %>% 
     filter(Trend == 0) %>%
     nrow
   Trend_Tabelle[i, "Summe_UB"] <- sum(Trend_Tabelle[i,9:11])
@@ -1215,23 +1554,3 @@ Trend_Tabelle
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## END OF SCRIPT ----
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
