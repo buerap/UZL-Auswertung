@@ -1503,6 +1503,19 @@ PL.Z9_Arten_full
 #        width = 12, height = 12, units = "cm" )
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+### Übersichtsplot alle 6 (Trend Artniveau) ----
+Trend_Artniveau <- gridExtra::grid.arrange(PL.Z7_Arten,
+                                           TF.Z7_Arten,
+                                           BI.Z7_Arten,
+                                           MOL.Z9_Arten,
+                                           MOOS.Z9_Arten,
+                                           PL.Z9_Arten,
+                                           ncol = 2, nrow = 3, as.table = F)
+
+# ggsave(Trend_Artniveau , file = "Trend_Artniveau.png",
+#        path = "R_PLOTS/REPORT",
+#        width = 25, height = 25, units = "cm" )
+
 ## Trend deskriptiv ----
 Trend_all <- list(PL.Z7   = PL_Z7.Trend,
                   TF.Z7   = TF_Z7.Trend,
