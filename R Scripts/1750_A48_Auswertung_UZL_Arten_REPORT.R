@@ -1503,7 +1503,7 @@ PL.Z9_Arten_full
 #        width = 12, height = 12, units = "cm" )
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-### Übersichtsplot alle 6 (Trend Artniveau) ----
+## Übersichtsplot alle 6 (Trend Artniveau) ----
 Trend_Artniveau <- gridExtra::grid.arrange(PL.Z7_Arten,
                                            TF.Z7_Arten,
                                            BI.Z7_Arten,
@@ -1515,7 +1515,57 @@ Trend_Artniveau <- gridExtra::grid.arrange(PL.Z7_Arten,
 # ggsave(Trend_Artniveau , file = "Trend_Artniveau.png",
 #        path = "R_PLOTS/REPORT",
 #        width = 25, height = 25, units = "cm" )
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+## Trend Artentabelle ----
+# Pflanzen Z7
+PL_Z7.Trend %>%
+  filter(Trend > 0.008) %>% 
+  arrange(desc(Trend))
+PL_Z7.Trend %>%
+  filter(Trend < -0.006) %>% 
+  arrange(desc(Trend))
 
+# Tagfalter Z7
+TF_Z7.Trend %>%
+  filter(Trend > 0.014) %>% 
+  arrange(desc(Trend))
+TF_Z7.Trend %>%
+  filter(Trend < -0.002) %>% 
+  arrange(desc(Trend))
+
+# Vögel Z7
+BI_Z7.Trend %>%
+  filter(Trend > 0.008) %>% 
+  arrange(desc(Trend))
+BI_Z7.Trend %>%
+  filter(Trend < -0.002) %>% 
+  arrange(desc(Trend))
+
+# Mollusken Z9
+MOL_Z9.Trend %>%
+  filter(Trend > 0.003) %>% 
+  arrange(desc(Trend))
+MOL_Z9.Trend %>%
+  filter(Trend < -0.001) %>% 
+  arrange(desc(Trend))
+
+# Moose Z9
+MOOS_Z9.Trend %>%
+  filter(Trend > 0.0015) %>% 
+  arrange(desc(Trend))
+MOOS_Z9.Trend %>%
+  filter(Trend < -0.002) %>% 
+  arrange(desc(Trend))
+
+# Pflanzen Z9
+PL_Z9.Trend %>%
+  filter(Trend > 0.0015) %>% 
+  arrange(desc(Trend))
+PL_Z9.Trend %>%
+  filter(Trend < -0.0015) %>% 
+  arrange(desc(Trend))
+
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## Trend deskriptiv ----
 Trend_all <- list(PL.Z7   = PL_Z7.Trend,
                   TF.Z7   = TF_Z7.Trend,
